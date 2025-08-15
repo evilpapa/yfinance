@@ -1,60 +1,60 @@
-# Contributing
+# 贡献
 
-yfinance relies on the community to investigate bugs and contribute code.
+yfinance依靠社区来调查错误和贡献代码。
 
-This is a quick short guide, full guide at https://ranaroussi.github.io/yfinance/development/index.html
+这是一个快速简短的指南，完整指南请访问 https://ranaroussi.github.io/yfinance/development/index.html
 
-## Branches
+## 分支
 
-YFinance uses a two-layer branch model:
+YFinance使用双层分支模型：
 
-* **dev**: new features & most bug-fixes merged here, tested together, conflicts fixed, etc.
-* **main**: stable branch where PIP releases are created.
+* **dev**: 新功能和大多数错误修复在此合并，一起测试，解决冲突等。
+* **main**: 创建PIP版本的稳定分支。
 
-## Running a branch
+## 运行分支
 
 ```bash
-pip install git+ranaroussi/yfinance.git@dev  # <- dev branch
+pip install git+ranaroussi/yfinance.git@dev  # <- dev 分支
 ```
 
 https://ranaroussi.github.io/yfinance/development/running.html
 
-### I'm a GitHub newbie, how do I contribute code?
+### 我是GitHub新手，如何贡献代码？
 
-1. Fork this project. If already forked, remember to `Sync fork`
+1. Fork本项目。如果已经fork，请记得 `Sync fork`
 
-2. Implement your change in your fork, ideally in a specific branch
+2. 在你的fork中实现你的更改，最好在一个特定的分支中
 
-3. Create a [Pull Request](https://github.com/ranaroussi/yfinance/pulls), from your fork to this project. If addressing an Issue, link to it
+3. 从你的fork创建一个到本项目的[Pull Request](https://github.com/ranaroussi/yfinance/pulls)。如果解决一个Issue，请链接到它
 
 https://ranaroussi.github.io/yfinance/development/code.html
 
-## Documentation website
+## 文档网站
 
-The new docs website is generated automatically from code. https://ranaroussi.github.io/yfinance/index.html
+新的文档网站是根据代码自动生成的。https://ranaroussi.github.io/yfinance/index.html
 
-Remember to updates docs when you change code, and check docs locally.
+当您更改代码时，请记住更新文档，并在本地检查文档。
 
 https://ranaroussi.github.io/yfinance/development/documentation.html
 
-## Git tricks
+## Git技巧
 
-Help keep the Git commit history and [network graph](https://github.com/ranaroussi/yfinance/network) compact:
+帮助保持Git提交历史和[网络图](https://github.com/ranaroussi/yfinance/network)的紧凑：
 
-* got a long descriptive commit message? `git commit -m "short sentence summary" -m "full commit message"`
+* 有一个长的描述性提交信息？`git commit -m "简短的句子摘要" -m "完整的提交信息"`
 
-* combine multiple commits into 1 with `git squash`
+* 使用 `git squash` 将多个提交合并为1个
 
-* `git rebase` is your friend: change base branch, or "merge in" updates
+* `git rebase` 是你的朋友：更改基础分支，或“合并”更新
 
 https://ranaroussi.github.io/yfinance/development/code.html#git-stuff
 
-## Unit tests
+## 单元测试
 
-Tests have been written using the built-in Python module `unittest`. Examples:
+测试是使用内置的Python模块 `unittest` 编写的。例子：
 
-* Run all tests: `python -m unittest discover -s tests`
+* 运行所有测试：`python -m unittest discover -s tests`
 
 https://ranaroussi.github.io/yfinance/development/testing.html
 
-> See the [Developer Guide](https://ranaroussi.github.io/yfinance/development/contributing.html#GIT-STUFF) for more information.
+> 更多信息请参阅[开发者指南](https://ranaroussi.github.io/yfinance/development/contributing.html#GIT-STUFF)。

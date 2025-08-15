@@ -28,27 +28,28 @@ from .data import YfData
 
 
 class Search:
+    """
+    从Yahoo Finance获取和组织搜索结果，包括股票报价和新闻文章。
+
+    参数:
+        query: 搜索查询（股票代码或公司名称）。
+        max_results: 返回的最大股票报价数（默认为8）。
+        news_count: 要包含的新闻文章数（默认为8）。
+        lists_count: 要包含的列表数（默认为8）。
+        include_cb: 包括公司明细（默认为True）。
+        include_nav_links: 包括导航链接（默认为False）。
+        include_research: 包括研究报告（默认为False）。
+        include_cultural_assets: 包括文化资产（默认为False）。
+        enable_fuzzy_query: 启用模糊搜索以处理拼写错误（默认为False）。
+        recommended: 建议返回的结果数（默认为8）。
+        session: 用于请求的自定义HTTP会话（默认为None）。
+        timeout: 请求超时（秒）（默认为30）。
+        raise_errors: 出错时引发异常（默认为True）。
+    """
+
     def __init__(self, query, max_results=8, news_count=8, lists_count=8, include_cb=True, include_nav_links=False,
                  include_research=False, include_cultural_assets=False, enable_fuzzy_query=False, recommended=8,
                  session=None, proxy=_SENTINEL_, timeout=30, raise_errors=True):
-        """
-        Fetches and organizes search results from Yahoo Finance, including stock quotes and news articles.
-
-        Args:
-            query: The search query (ticker symbol or company name).
-            max_results: Maximum number of stock quotes to return (default 8).
-            news_count: Number of news articles to include (default 8).
-            lists_count: Number of lists to include (default 8).
-            include_cb: Include the company breakdown (default True).
-            include_nav_links: Include the navigation links (default False).
-            include_research: Include the research reports (default False).
-            include_cultural_assets: Include the cultural assets (default False).
-            enable_fuzzy_query: Enable fuzzy search for typos (default False).
-            recommended: Recommended number of results to return (default 8).
-            session: Custom HTTP session for requests (default None).
-            timeout: Request timeout in seconds (default 30).
-            raise_errors: Raise exceptions on error (default True).
-        """
         self.session = session
         self._data = YfData(session=self.session)
         
@@ -83,7 +84,7 @@ class Search:
         self.search()
 
     def search(self) -> 'Search':
-        """Search using the query parameters defined in the constructor."""
+        """使用构造函数中定义的查询参数进行搜索。"""
         url = f"{_BASE_URL_}/v1/finance/search"
         params = {
             "q": self.query,
@@ -114,7 +115,6 @@ class Search:
             data = {}
 
         self._response = data
-        # Filter quotes to only include symbols
         self._quotes = [quote for quote in data.get("quotes", []) if "symbol" in quote]
         self._news = data.get("news", [])
         self._lists = data.get("lists", [])
@@ -128,35 +128,35 @@ class Search:
 
     @property
     def quotes(self) -> 'list':
-        """Get the quotes from the search results."""
+        """从搜索结果中获取报价。"""
         return self._quotes
 
     @property
     def news(self) -> 'list':
-        """Get the news from the search results."""
+        """从搜索结果中获取新闻。"""
         return self._news
 
     @property
     def lists(self) -> 'list':
-        """Get the lists from the search results."""
+        """从搜索结果中获取列表。"""
         return self._lists
 
     @property
     def research(self) -> 'list':
-        """Get the research reports from the search results."""
+        """从搜索结果中获取研究报告。"""
         return self._research
 
     @property
     def nav(self) -> 'list':
-        """Get the navigation links from the search results."""
+        """从搜索结果中获取导航链接。"""
         return self._nav
 
     @property
     def all(self) -> 'dict[str,list]':
-        """Get all the results from the search results: filtered down version of response."""
+        """从搜索结果中获取所有结果：响应的筛选版本。"""
         return self._all
 
     @property
     def response(self) -> 'dict':
-        """Get the raw response from the search results."""
+        """从搜索结果中获取原始响应。"""
         return self._response

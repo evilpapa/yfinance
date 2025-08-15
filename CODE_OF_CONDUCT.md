@@ -1,15 +1,15 @@
-# Code of Conduct
+# 行为准则
 
-## Submitting a new issue
+## 提交新问题
 
-* Search through existing Issues and Discussions, in case your issue already exists and a solution is being developed.
-* Ensure you read & follow the template form.
-* Consider you may be the best person to investigate and fix.
+* 搜索现有的问题和讨论，以防您的问题已经存在并且正在开发解决方案。
+* 确保您阅读并遵循模板表单。
+* 考虑您可能是调查和修复的最佳人选。
 
-## Contributing to an existing Issue
+## 为现有问题做出贡献
 
-* Read the entire thread.
-* Ensure your comment is contributing something new/useful. Remember you can simply react to other comments.
-* Be concise:
-  - use the formatting options
-  - if replying to a big comment, instead of quoting it, link to it
+* 阅读整个帖子。
+* 确保您的评论贡献了新的/有用的东西。请记住，您可以简单地对其他评论做出反应。
+* 简洁：
+  - 使用格式选项
+  - 如果回复很长的评论，请链接到它，而不是引用它

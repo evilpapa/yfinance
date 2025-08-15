@@ -1,34 +1,34 @@
 =============
-API Reference
+API 参考
 =============
 
-Overview
+概述
 --------
 
-The `yfinance` package provides easy access to Yahoo! Finance's API to retrieve market data. It includes classes and functions for downloading historical market data, accessing ticker information, managing cache, and more.
+`yfinance` 包可以轻松访问Yahoo! Finance的API以检索市场数据。它包括用于下载历史市场数据、访问股票代码信息、管理缓存等的类和函数。
 
 
-Public API
+公共API
 ==========
 
-The following are the publicly available classes, and functions exposed by the `yfinance` package:
+以下是`yfinance`包公开的类和函数：
 
-- :attr:`Ticker <yfinance.Ticker>`: Class for accessing single ticker data.
-- :attr:`Tickers <yfinance.Tickers>`: Class for handling multiple tickers.
-- :attr:`Market <yfinance.Market>`: Class for accessing market summary.
-- :attr:`download <yfinance.download>`: Function to download market data for multiple tickers.
-- :attr:`Search <yfinance.Search>`: Class for accessing search results.
-- :attr:`Lookup <yfinance.Lookup>`: Class for looking up tickers.
-- :class:`WebSocket <yfinance.WebSocket>`: Class for synchronously streaming live market data.
-- :class:`AsyncWebSocket <yfinance.AsyncWebSocket>`: Class for asynchronously streaming live market data.
-- :attr:`Sector <yfinance.Sector>`: Domain class for accessing sector information.
-- :attr:`Industry <yfinance.Industry>`: Domain class for accessing industry information.
-- :attr:`Market <yfinance.Market>`: Class for accessing market status & summary.
-- :attr:`EquityQuery <yfinance.EquityQuery>`: Class to build equity query filters.
-- :attr:`FundQuery <yfinance.FundQuery>`: Class to build fund query filters.
-- :attr:`screen <yfinance.screen>`: Run equity/fund queries.
-- :attr:`enable_debug_mode <yfinance.enable_debug_mode>`: Function to enable debug mode for logging.
-- :attr:`set_tz_cache_location <yfinance.set_tz_cache_location>`: Function to set the timezone cache location.
+- :attr:`Ticker <yfinance.Ticker>`: 用于访问单个股票代码数据的类。
+- :attr:`Tickers <yfinance.Tickers>`: 用于处理多个股票代码的类。
+- :attr:`Market <yfinance.Market>`: 用于访问市场摘要的类。
+- :attr:`download <yfinance.download>`: 用于下载多个股票代码的市场数据的函数。
+- :attr:`Search <yfinance.Search>`: 用于访问搜索结果的类。
+- :attr:`Lookup <yfinance.Lookup>`: 用于查找股票代码的类。
+- :class:`WebSocket <yfinance.WebSocket>`: 用于同步流式传输实时市场数据的类。
+- :class:`AsyncWebSocket <yfinance.AsyncWebSocket>`: 用于异步流式传输实时市场数据的类。
+- :attr:`Sector <yfinance.Sector>`: 用于访问行业信息的域类。
+- :attr:`Industry <yfinance.Industry>`: 用于访问行业信息的域类。
+- :attr:`Market <yfinance.Market>`: 用于访问市场状态和摘要的类。
+- :attr:`EquityQuery <yfinance.EquityQuery>`: 用于构建股票查询过滤器的类。
+- :attr:`FundQuery <yfinance.FundQuery>`: 用于构建基金查询过滤器的类。
+- :attr:`screen <yfinance.screen>`: 运行股票/基金查询。
+- :attr:`enable_debug_mode <yfinance.enable_debug_mode>`: 用于启用日志记录调试模式的函数。
+- :attr:`set_tz_cache_location <yfinance.set_tz_cache_location>`: 用于设置时区缓存位置的函数。
 
 .. toctree::
    :maxdepth: 1

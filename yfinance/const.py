@@ -1,9 +1,12 @@
+# Yahoo Finance API的URL常量
 _QUERY1_URL_ = 'https://query1.finance.yahoo.com'
 _BASE_URL_ = 'https://query2.finance.yahoo.com'
 _ROOT_URL_ = 'https://finance.yahoo.com'
 
+# 用于标记未设置值的哨兵对象
 _SENTINEL_ = object()
 
+# 财务报表中的键名
 fundamentals_keys = {
     'financials': ["TaxEffectOfUnusualItems", "TaxRateForCalcs", "NormalizedEBITDA", "NormalizedDilutedEPS",
                    "NormalizedBasicEPS", "TotalUnusualItems", "TotalUnusualItemsExcludingGoodwill",
@@ -121,37 +124,39 @@ fundamentals_keys = {
                   "PaymentstoSuppliersforGoodsandServices", "ClassesofCashReceiptsfromOperatingActivities",
                   "OtherCashReceiptsfromOperatingActivities", "ReceiptsfromGovernmentGrants", "ReceiptsfromCustomers"]}
 
+# 价格相关的列名
 _PRICE_COLNAMES_ = ['Open', 'High', 'Low', 'Close', 'Adj Close']
 
+# 报价摘要的有效模块
 quote_summary_valid_modules = (
-    "summaryProfile",  # contains general information about the company
-    "summaryDetail",  # prices + volume + market cap + etc
-    "assetProfile",  # summaryProfile + company officers
+    "summaryProfile",  # 包含公司的一般信息
+    "summaryDetail",  # 价格 + 交易量 + 市值等
+    "assetProfile",  # summaryProfile + 公司高管
     "fundProfile",
-    "price",  # current prices
-    "quoteType",  # quoteType
-    "esgScores",  # Environmental, social, and governance (ESG) scores, sustainability and ethical performance of companies
+    "price",  # 当前价格
+    "quoteType",  # 报价类型
+    "esgScores",  # 环境、社会和治理（ESG）得分，公司的可持续性和道德表现
     "incomeStatementHistory",
     "incomeStatementHistoryQuarterly",
     "balanceSheetHistory",
     "balanceSheetHistoryQuarterly",
     "cashFlowStatementHistory",
     "cashFlowStatementHistoryQuarterly",
-    "defaultKeyStatistics",  # KPIs (PE, enterprise value, EPS, EBITA, and more)
-    "financialData",  # Financial KPIs (revenue, gross margins, operating cash flow, free cash flow, and more)
-    "calendarEvents",  # future earnings date
-    "secFilings",  # SEC filings, such as 10K and 10Q reports
-    "upgradeDowngradeHistory",  # upgrades and downgrades that analysts have given a company's stock
-    "institutionOwnership",  # institutional ownership, holders and shares outstanding
-    "fundOwnership",  # mutual fund ownership, holders and shares outstanding
+    "defaultKeyStatistics",  # 关键绩效指标（市盈率、企业价值、每股收益、EBITA等）
+    "financialData",  # 财务关键绩效指标（收入、毛利率、经营现金流、自由现金流等）
+    "calendarEvents",  # 未来财报日期
+    "secFilings",  # SEC文件，例如10K和10Q报告
+    "upgradeDowngradeHistory",  # 分析师对公司股票的升级和降级
+    "institutionOwnership",  # 机构所有权、持有人和已发行股票
+    "fundOwnership",  # 共同基金所有权、持有人和已发行股票
     "majorDirectHolders",
     "majorHoldersBreakdown",
-    "insiderTransactions",  # insider transactions, such as the number of shares bought and sold by company executives
-    "insiderHolders",  # insider holders, such as the number of shares held by company executives
-    "netSharePurchaseActivity",  # net share purchase activity, such as the number of shares bought and sold by company executives
-    "earnings",  # earnings history
+    "insiderTransactions",  # 内部人交易，例如公司高管买卖的股票数量
+    "insiderHolders",  # 内部持有人，例如公司高管持有的股票数量
+    "netSharePurchaseActivity",  # 净购股活动，例如公司高管买卖的股票数量
+    "earnings",  # 盈利历史
     "earningsHistory",
-    "earningsTrend",  # earnings trend
+    "earningsTrend",  # 盈利趋势
     "industryTrend",
     "indexTrend",
     "sectorTrend",
@@ -159,7 +164,7 @@ quote_summary_valid_modules = (
     "futuresChain",
 )
 
-# map last updated as of 2024.09.18
+# 板块与行业的映射关系，最后更新于2024.09.18
 SECTOR_INDUSTY_MAPPING = {
     'basic-materials': {'specialty-chemicals',
                         'gold',
@@ -309,13 +314,12 @@ SECTOR_INDUSTY_MAPPING = {
 }
 
 def merge_two_level_dicts(dict1, dict2):
+    """合并两个两级字典"""
     result = dict1.copy()
     for key, value in dict2.items():
         if key in result:
-            # If both are sets, merge them
             if isinstance(value, set) and isinstance(result[key], set):
                 result[key] = result[key] | value
-            # If both are dicts, merge their contents
             elif isinstance(value, dict) and isinstance(result[key], dict):
                 result[key] = {
                     k: (result[key].get(k, set()) | v if isinstance(v, set) 
@@ -327,6 +331,7 @@ def merge_two_level_dicts(dict1, dict2):
             result[key] = value
     return result
 
+# 股票筛选器的映射
 EQUITY_SCREENER_EQ_MAP = {
     "exchange": {
         'ar': {'BUE'},
@@ -627,6 +632,7 @@ EQUITY_SCREENER_FIELDS = {
 }
 EQUITY_SCREENER_FIELDS = merge_two_level_dicts(EQUITY_SCREENER_FIELDS, COMMON_SCREENER_FIELDS)
 
+# 浏览器User-Agent列表
 USER_AGENTS = [
     # Chrome
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",

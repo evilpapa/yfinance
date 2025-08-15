@@ -1,35 +1,35 @@
-yfinance documentation
+yfinance 文档
 ======================
 
-Download Market Data from Yahoo! Finance's API
+从雅虎财经API下载市场数据
 ----------------------------------------------
 
-.. admonition:: IMPORTANT LEGAL DISCLAIMER
+.. admonition:: 重要法律免责声明
 
-   **Yahoo!, Y!Finance, and Yahoo! finance are registered trademarks of Yahoo, Inc.**
+   **Yahoo!、Y!Finance 和 Yahoo! finance 是雅虎公司的注册商标。**
 
-   yfinance is **not** affiliated, endorsed, or vetted by Yahoo, Inc. It's
-   an open-source tool that uses Yahoo's publicly available APIs, and is
-   intended for research and educational purposes.
+   yfinance 与雅虎公司**没有**关联，也未得到其认可或审查。它是一个
+   开源工具，使用雅虎的公开可用API，旨在
+   用于研究和教育目的。
 
-   **You should refer to Yahoo!'s terms of use**
-   (`here <https://policies.yahoo.com/us/en/yahoo/terms/product-atos/apiforydn/index.htm>`__),
-   (`here <https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html>`__),
-   and (`here <https://policies.yahoo.com/us/en/yahoo/terms/index.htm>`__)
-   for details on your rights to use the actual data downloaded.
-   Remember - the Yahoo! finance API is intended for personal use only.
+   **您应参考雅虎的使用条款**
+   (`此处 <https://policies.yahoo.com/us/en/yahoo/terms/product-atos/apiforydn/index.htm>`__),
+   (`此处 <https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html>`__),
+   和 (`此处 <https://policies.yahoo.com/us/en/yahoo/terms/index.htm>`__)
+   以了解您使用下载数据的权利详情。
+   请记住 - 雅虎财经API仅供个人使用。
 
-Install
+安装
 -------
 
 .. code-block:: bash
 
     $ pip install yfinance
 
-Quick start
+快速入门
 -----------
 
-Showing a small sample of yfinance API, the full API is much bigger and covered in :doc:`reference/index`.
+展示 yfinance API 的一小部分示例，完整的 API 要大得多，并在 :doc:`reference/index` 中介绍。
 
 .. code-block:: python
 
@@ -37,7 +37,7 @@ Showing a small sample of yfinance API, the full API is much bigger and covered 
    dat = yf.Ticker("MSFT")
 
 
-One ticker symbol
+单个股票代码
 
 .. code-block:: python
 
@@ -49,7 +49,7 @@ One ticker symbol
    dat.history(period='1mo')
    dat.option_chain(dat.options[0]).calls
 
-Multiple ticker symbols
+多个股票代码
 
 .. code-block:: python
 
@@ -57,7 +57,7 @@ Multiple ticker symbols
    tickers.tickers['MSFT'].info
    yf.download(['MSFT', 'AAPL', 'GOOG'], period='1mo')
 
-Funds
+基金
 
 .. code-block:: python
 
@@ -68,6 +68,7 @@ Funds
 .. toctree::
    :maxdepth: 1
    :titlesonly:
+   :caption: 目录
 
    advanced/index
    reference/index

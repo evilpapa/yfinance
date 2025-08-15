@@ -10,7 +10,17 @@ from ..utils import dynamic_docstring, generate_list_table_from_dict_universal
 T = TypeVar('T', bound=Union[str, numbers.Real])
 
 class QueryBase(ABC):
+    """
+    查询的基类。
+    """
     def __init__(self, operator: str, operand: Union[ List['QueryBase'], Tuple[str, Tuple[Union[str, numbers.Real],  ...]] ]):
+        """
+        初始化QueryBase对象。
+
+        参数:
+            operator (str): 操作符，例如 'AND', 'OR', 'EQ', 'GT', 'LT'。
+            operand: 操作数。
+        """
         operator = operator.upper()
 
         if not isinstance(operand, list):
@@ -59,8 +69,6 @@ class QueryBase(ABC):
         if operand[0] in self.valid_values:
             vv = self.valid_values[operand[0]]
             if isinstance(vv, dict):
-                # this data structure is slightly different to generate better docs, 
-                # need to unpack here.
                 vv = set().union(*[e for e in vv.values()])
             if operand[1] not in vv:
                 raise ValueError(f'Invalid EQ value "{operand[1]}"')
@@ -92,8 +100,6 @@ class QueryBase(ABC):
         if operand[0] in self.valid_values:
             vv = self.valid_values[operand[0]]
             if isinstance(vv, dict):
-                # this data structure is slightly different to generate better docs, 
-                # need to unpack here.
                 vv = set().union(*[e for e in vv.values()])
             for i in range(1, len(operand)):
                 if operand[i] not in vv:
@@ -103,7 +109,6 @@ class QueryBase(ABC):
         op = self.operator
         ops = self.operands
         if self.operator == 'IS-IN':
-            # Expand to OR of EQ queries
             op = 'OR'
             ops = [type(self)('EQ', [self.operands[0], v]) for v in self.operands[1:]]
         return {
@@ -116,19 +121,15 @@ class QueryBase(ABC):
         class_name = self.__class__.__name__
 
         if isinstance(self.operands, list):
-            # For list operands, check if they contain any QueryBase objects
             if any(isinstance(op, QueryBase) for op in self.operands):
-                # If there are nested queries, format them with newlines
                 operands_str = ",\n".join(
                     f"{indent_str}  {op.__repr__(indent + 1) if isinstance(op, QueryBase) else repr(op)}"
                     for op in self.operands
                 )
                 return f"{class_name}({self.operator}, [\n{operands_str}\n{indent_str}])"
             else:
-                # For lists of simple types, keep them on one line
                 return f"{class_name}({self.operator}, {repr(self.operands)})"
         else:
-            # Handle single operand
             return f"{class_name}({self.operator}, {repr(self.operands)})"
 
     def __str__(self) -> str:
@@ -137,30 +138,14 @@ class QueryBase(ABC):
 
 class EquityQuery(QueryBase):
     """
-    The `EquityQuery` class constructs filters for stocks based on specific criteria such as region, sector, exchange, and peer group.
-
-    Start with value operations: `EQ` (equals), `IS-IN` (is in), `BTWN` (between), `GT` (greater than), `LT` (less than), `GTE` (greater or equal), `LTE` (less or equal).
-
-    Combine them with logical operations: `AND`, `OR`.
-
-    Example:
-        Predefined Yahoo query `aggressive_small_caps`:
-        
-        .. code-block:: python
-
-            from yfinance import EquityQuery
-
-            EquityQuery('and', [
-                EquityQuery('is-in', ['exchange', 'NMS', 'NYQ']), 
-                EquityQuery('lt', ["epsgrowth.lasttwelvemonths", 15])
-            ])
+    EquityQuery类用于根据特定标准（如地区、行业、交易所和同行组）构建股票筛选器。
     """
 
     @dynamic_docstring({"valid_operand_fields_table": generate_list_table_from_dict_universal(EQUITY_SCREENER_FIELDS)})
     @property
     def valid_fields(self) -> Dict:
         """
-        Valid operands, grouped by category.
+        有效操作数，按类别分组。
         {valid_operand_fields_table}
         """
         return EQUITY_SCREENER_FIELDS
@@ -169,7 +154,7 @@ class EquityQuery(QueryBase):
     @property
     def valid_values(self) -> Dict:
         """
-        Most operands take number values, but some have a restricted set of valid values.
+        大多数操作数采用数值，但有些具有一组受限的有效值。
         {valid_values_table}
         """
         return EQUITY_SCREENER_EQ_MAP
@@ -177,32 +162,13 @@ class EquityQuery(QueryBase):
 
 class FundQuery(QueryBase):
     """
-    The `FundQuery` class constructs filters for mutual funds based on specific criteria such as region, sector, exchange, and peer group.
-
-    Start with value operations: `EQ` (equals), `IS-IN` (is in), `BTWN` (between), `GT` (greater than), `LT` (less than), `GTE` (greater or equal), `LTE` (less or equal).
-
-    Combine them with logical operations: `AND`, `OR`.
-
-    Example:
-        Predefined Yahoo query `solid_large_growth_funds`:
-        
-        .. code-block:: python
-
-            from yfinance import FundQuery
-            
-            FundQuery('and', [
-                FundQuery('eq', ['categoryname', 'Large Growth']), 
-                FundQuery('is-in', ['performanceratingoverall', 4, 5]), 
-                FundQuery('lt', ['initialinvestment', 100001]), 
-                FundQuery('lt', ['annualreturnnavy1categoryrank', 50]), 
-                FundQuery('eq', ['exchange', 'NAS'])
-            ])
+    FundQuery类用于根据特定标准（如地区、行业、交易所和同行组）构建共同基金筛选器。
     """
     @dynamic_docstring({"valid_operand_fields_table": generate_list_table_from_dict_universal(FUND_SCREENER_FIELDS)})
     @property
     def valid_fields(self) -> Dict:
         """
-        Valid operands, grouped by category.
+        有效操作数，按类别分组。
         {valid_operand_fields_table}
         """
         return FUND_SCREENER_FIELDS
@@ -211,8 +177,7 @@ class FundQuery(QueryBase):
     @property
     def valid_values(self) -> Dict:
         """
-        Most operands take number values, but some have a restricted set of valid values.
+        大多数操作数采用数值，但有些具有一组受限的有效值。
         {valid_values_table}
         """
         return FUND_SCREENER_EQ_MAP
-

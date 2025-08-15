@@ -12,21 +12,21 @@ from .domain import Domain, _QUERY_URL_
 
 class Sector(Domain):
     """
-    Represents a financial market sector and allows retrieval of sector-related data 
-    such as top ETFs, top mutual funds, and industry data.
+    表示一个金融市场板块，并允许检索与板块相关的数据，
+    例如顶尖ETF、顶尖共同基金和行业数据。
     """
 
     def __init__(self, key, session=None, proxy=_SENTINEL_):
         """
-        Args:
-            key (str): The key representing the sector.
-            session (requests.Session, optional): A session for making requests. Defaults to None.
-            proxy (dict, optional): A dictionary containing proxy settings for the request. Defaults to None.
+        参数:
+            key (str): 表示板块的键。
+            session (requests.Session, optional): 用于发出请求的会话。默认为None。
+            proxy (dict, optional): 包含请求代理设置的字典。默认为None。
         
         .. seealso::
    
             :attr:`Sector.industries <yfinance.Sector.industries>`
-                Map of sector and industry
+                板块和行业的映射
         """
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
@@ -40,20 +40,20 @@ class Sector(Domain):
 
     def __repr__(self):
         """
-        Returns the string representation of the Sector object.
+        返回Sector对象的字符串表示形式。
 
-        Returns:
-            str: A string representation of the object.
+        返回:
+            str: 对象的字符串表示形式。
         """
         return f'yfinance.Sector object <{self._key}>'
     
     @property
     def top_etfs(self) -> Dict[str, str]:
         """
-        Gets the top ETFs for the sector.
+        获取板块的顶尖ETF。
 
-        Returns:
-            Dict[str, str]: A dictionary of ETF symbols and names.
+        返回:
+            Dict[str, str]: ETF符号和名称的字典。
         """
         self._ensure_fetched(self._top_etfs)
         return self._top_etfs
@@ -61,10 +61,10 @@ class Sector(Domain):
     @property
     def top_mutual_funds(self) -> Dict[str, str]:
         """
-        Gets the top mutual funds for the sector.
+        获取板块的顶尖共同基金。
 
-        Returns:
-            Dict[str, str]: A dictionary of mutual fund symbols and names.
+        返回:
+            Dict[str, str]: 共同基金符号和名称的字典。
         """
         self._ensure_fetched(self._top_mutual_funds)
         return self._top_mutual_funds
@@ -73,10 +73,10 @@ class Sector(Domain):
     @property
     def industries(self) -> _pd.DataFrame:
         """
-        Gets the industries within the sector.
+        获取板块内的行业。
 
-        Returns:
-            pandas.DataFrame: A DataFrame with industries' key, name, symbol, and market weight.
+        返回:
+            pandas.DataFrame: 包含行业键、名称、符号和市场权重的DataFrame。
 
         {sector_industry}
         """
@@ -85,37 +85,37 @@ class Sector(Domain):
     
     def _parse_top_etfs(self, top_etfs: Dict) -> Dict[str, str]:
         """
-        Parses top ETF data from the API response.
+        从API响应中解析顶尖ETF数据。
 
-        Args:
-            top_etfs (Dict): The raw ETF data from the API response.
+        参数:
+            top_etfs (Dict): 来自API响应的原始ETF数据。
 
-        Returns:
-            Dict[str, str]: A dictionary of ETF symbols and names.
+        返回:
+            Dict[str, str]: ETF符号和名称的字典。
         """
         return {e.get('symbol'): e.get('name') for e in top_etfs}
 
     def _parse_top_mutual_funds(self, top_mutual_funds: Dict) -> Dict[str, str]:
         """
-        Parses top mutual funds data from the API response.
+        从API响应中解析顶尖共同基金数据。
 
-        Args:
-            top_mutual_funds (Dict): The raw mutual fund data from the API response.
+        参数:
+            top_mutual_funds (Dict): 来自API响应的原始共同基金数据。
 
-        Returns:
-            Dict[str, str]: A dictionary of mutual fund symbols and names.
+        返回:
+            Dict[str, str]: 共同基金符号和名称的字典。
         """
         return {e.get('symbol'): e.get('name') for e in top_mutual_funds}
     
     def _parse_industries(self, industries: Dict) -> _pd.DataFrame:
         """
-        Parses industry data from the API response into a DataFrame.
+        从API响应中将行业数据解析为DataFrame。
 
-        Args:
-            industries (Dict): The raw industry data from the API response.
+        参数:
+            industries (Dict): 来自API响应的原始行业数据。
 
-        Returns:
-            pandas.DataFrame: A DataFrame containing industry key, name, symbol, and market weight.
+        返回:
+            pandas.DataFrame: 包含行业键、名称、符号和市场权重的DataFrame。
         """
         industries_column = ['key','name','symbol','market weight']
         industries_values = [(i.get('key'),
@@ -127,14 +127,13 @@ class Sector(Domain):
 
     def _fetch_and_parse(self) -> None:
         """
-        Fetches and parses sector data from the API.
+        从API获取并解析板块数据。
 
-        Fetches data for the sector and parses the top ETFs, top mutual funds, 
-        and industries within the sector. Stores the parsed data in the corresponding
-        attributes `_top_etfs`, `_top_mutual_funds`, and `_industries`.
+        获取板块数据，并解析板块内的顶尖ETF、顶尖共同基金和行业。
+        将解析后的数据存储在相应的属性 `_top_etfs`、`_top_mutual_funds` 和 `_industries` 中。
 
-        Raises:
-            Exception: If fetching or parsing the sector data fails.
+        引发:
+            Exception: 如果获取或解析板块数据失败。
         """
         result = None
         

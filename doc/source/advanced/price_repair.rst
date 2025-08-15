@@ -1,22 +1,22 @@
 ************
-Price Repair
+价格修复
 ************
 
-The new argument ``repair=True`` in ``history()`` and ``download()`` will attempt to fix a variety of price errors caused by Yahoo. Only US market data appears perfect, I guess Yahoo doesn't care much about rest of world?
+在 ``history()`` 和 ``download()`` 中的新参数 ``repair=True`` 将尝试修复由雅虎引起的各种价格错误。似乎只有美国市场数据是完美的，我猜雅虎不太关心世界其他地方？
 
-The returned table will have a new column ``Repaired?`` that specifies if row was repaired.
+返回的表将有一个新列 ``Repaired?``，用于指定行是否已修复。
 
-Price repair
+价格修复
 ============
 
-Missing dividend adjustment
+缺少股息调整
 ---------------------------
 
-If dividend in data but preceding ``Adj Close`` = ``Close``, then manually apply dividend-adjustment to ``Adj Close``.
-Note: ``Repaired?`` is NOT set to ``True`` because fix only changes ``Adj Close``
+如果数据中有股息，但之前的 ``Adj Close`` = ``Close``，则手动将股息调整应用于 ``Adj Close``。
+注意：``Repaired?`` 未设置为 ``True``，因为修复仅更改 ``Adj Close``
 
 .. figure:: /_static/images/repair-prices-missing-div-adjust.png
-   :alt: 8TRA.DE: repair missing dividend adjustment
+   :alt: 8TRA.DE：修复丢失的股息调整
    :width: 80%
    :align: left
 
@@ -26,14 +26,14 @@ Note: ``Repaired?`` is NOT set to ``True`` because fix only changes ``Adj Close`
 
    ..
 
-Missing split adjustment
+缺少拆分调整
 ------------------------
 
-If stock split in data but preceding price data is not adjusted, then manually apply stock split.
-Requires date range include 1 day after stock split for calibration - sometimes Yahoo fails to adjust prices on stock split day.
+如果数据中有股票拆分，但之前的价格数据未调整，则手动应用股票拆分。
+要求日期范围包括股票拆分后1天以进行校准 - 有时雅虎在股票拆分日未能调整价格。
 
 .. figure:: /_static/images/repair-prices-missing-split-adjust.png
-   :alt: MOB.ST: repair missing split adjustment
+   :alt: MOB.ST：修复丢失的拆分调整
    :width: 80%
    :align: left
 
@@ -43,131 +43,131 @@ Requires date range include 1 day after stock split for calibration - sometimes 
 
    ..
 
-Missing data
+数据丢失
 ------------
 
-If price data is clearly missing or corrupt, then reconstructed using smaller interval e.g. ``1h`` to fix ``1d`` data.
+如果价格数据明显丢失或损坏，则使用较小的时间间隔（例如 ``1h``）重建以修复 ``1d`` 数据。
 
 .. figure:: /_static/images/repair-prices-missing-row.png
-   :alt: 1COV.DE: repair missing row
+   :alt: 1COV.DE：修复丢失的行
    :width: 80%
    :align: left
 
-   1COV.DE missing row
+   1COV.DE 丢失的行
 
 .. container:: clearer
 
    ..
 
 .. figure:: /_static/images/repair-prices-missing-volume-intraday.png
-   :alt: 1COV.DE: repair missing Volume, but intraday price changed
+   :alt: 1COV.DE：修复丢失的交易量，但盘中价格已更改
    :width: 80%
    :align: left
 
-   1COV.DE missing Volume, but intraday price changed
+   1COV.DE 丢失的交易量，但盘中价格已更改
 
 .. container:: clearer
 
    ..
 
 .. figure:: /_static/images/repair-prices-missing-volume-daily.png
-   :alt: 0316.HK: repair missing Volume, but daily price changed
+   :alt: 0316.HK：修复丢失的交易量，但每日价格已更改
    :width: 80%
    :align: left
 
-   0316.HK missing Volume, but daily price changed
+   0316.HK 丢失的交易量，但每日价格已更改
 
 .. container:: clearer
 
    ..
 
-100x errors
+100倍错误
 -----------
 
-Sometimes Yahoo mixes up currencies e.g. $/cents or £/pence. So some prices are 100x wrong.
-Sometimes they are spread randomly through data - these detected with ``scipy`` module.
-Other times they are in a block, because Yahoo decided one day to permanently switch currency.
+有时雅虎会混淆货币，例如美元/美分或英镑/便士。所以有些价格是100倍错误的。
+有时它们随机分布在数据中 - 这些用 ``scipy`` 模块检测。
+其他时候它们在一个块中，因为雅虎决定有一天永久切换货币。
 
 .. figure:: /_static/images/repair-prices-100x.png
-   :alt: AET.L: repair 100x
+   :alt: AET.L：修复100倍
    :width: 80%
    :align: left
 
    AET.L
 
-Price reconstruction - algorithm notes
+价格重建 - 算法说明
 --------------------------------------
 
-Spam minimised by grouping fetches. Tries to be aware of data limits e.g. ``1h`` cannot be fetched beyond 2 years.
+通过分组抓取最小化垃圾邮件。尝试了解数据限制，例如 ``1h`` 无法获取超过2年的数据。
 
-If Yahoo eventually does fix the bad data that required reconstruction, you will see it's slightly different to reconstructed prices and volume often significantly different. Best I can do, and beats missing data.
+如果雅虎最终确实修复了需要重建的坏数据，您会发现它与重建的价格略有不同，并且交易量通常有很大不同。这是我能做的最好的，并且比丢失数据要好。
 
-Dividend repair (new)
+股息修复（新）
 =====================
 
-Fix errors in dividends:
+修复股息中的错误：
 
-1. adjustment missing or 100x too small/big for the dividend
-2. duplicate dividend (within 7 days)
-3. dividend 100x too big/small for the ex-dividend price drop
-4. ex-div date wrong (price drop is few days/weeks after)
+1. 调整缺失或比股息小/大100倍
+2. 重复股息（7天内）
+3. 股息比除息价格下跌大/小100倍
+4. 除息日期错误（价格下跌在几天/几周后）
 
-Most errors I've seen are on London stock exchange (£/pence mixup), but no exchange is safe.
+我见过的大多数错误都在伦敦证券交易所（英镑/便士混淆），但没有哪个交易所是安全的。
 
-IMPORTANT - false positives
+重要 - 误报
 ---------------------------
 
-Because fixing (3) relies on price action, there is a chance of a "false positive" (FP) - thinking an error exists when data is good.
-FP rate increases with longer intervals, so only 1d intervals are repaired. If you request repair on multiday intervals (weekly etc), then: 1d is fetched from Yahoo, repaired, then resampled - **this has nice side-effect of solving Yahoo's flawed way of div-adjusting multiday intervals.**
+因为修复（3）依赖于价格行为，所以有可能出现“误报”（FP） - 在数据良好时认为存在错误。
+FP率随着时间间隔的延长而增加，因此只修复1d间隔。如果您要求修复多日间隔（每周等），那么：从雅虎获取1d数据，修复，然后重新采样 - **这有一个很好的副作用，即解决了雅虎有缺陷的股息调整多日间隔的方式。**
 
-FP rate on 1d is tiny. They tend to happen with tiny dividends e.g. 0.5%, mistaking normal price volatility for an ex-div drop 100x bigger than the dividend, causing repair of the "too small" dividend (repair logic already tries to account for normal volatility by subtracting median). Either accept the risk, or fetch 6-12 months of prices with at least 2 dividends - then can analyse the dividends together to identify false positives.
+1d的FP率很小。它们往往发生在微小的股息上，例如0.5%，将正常的价格波动误认为是比股息大100倍的除息下跌，导致修复“太小”的股息（修复逻辑已经试图通过减去中位数来考虑正常波动）。要么接受风险，要么获取6-12个月的价格，其中至少有2个股息 - 然后可以一起分析股息以识别误报。
 
-Adjustment missing
+调整缺失
 ------------------
 
 1398.HK
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                               Close  Adj Close  Dividends
    2024-07-08 00:00:00+08:00   4.33       4.33   0.335715
    2024-07-04 00:00:00+08:00   4.83       4.83   0.000000
 
 .. code-block:: text
 
-   # REPAIRED:
+   # 修复后:
                               Close  Adj Close  Dividends
    2024-07-08 00:00:00+08:00   4.33   4.330000   0.335715
    2024-07-04 00:00:00+08:00   4.83   4.494285   0.000000
 
-Adjustment too small
+调整太小
 --------------------
 
 3IN.L
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                               Close  Adj Close  Dividends
    2024-06-13 00:00:00+01:00  3.185   3.185000    0.05950
    2024-06-12 00:00:00+01:00  3.270   3.269405    0.00000
 
 .. code-block:: text
 
-   # REPAIRED:
+   # 修复后:
                               Close  Adj Close  Dividends
    2024-06-13 00:00:00+01:00  3.185   3.185000    0.05950
    2024-06-12 00:00:00+01:00  3.270   3.210500    0.00000
 
-Duplicate (within 7 days)
+重复（7天内）
 -------------------------
 
 ALC.SW
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                                   Close  Adj Close  Dividends
    2023-05-10 00:00:00+02:00  70.580002  70.352142       0.21
    2023-05-09 00:00:00+02:00  65.739998  65.318443       0.21
@@ -175,37 +175,37 @@ ALC.SW
 
 .. code-block:: text
 
-   # REPAIRED:
+   # 修复后:
                                   Close  Adj Close  Dividends
    2023-05-10 00:00:00+02:00  70.580002  70.352142       0.00
    2023-05-09 00:00:00+02:00  65.739998  65.527764       0.21
    2023-05-08 00:00:00+02:00  66.379997  65.956371       0.00
 
-Dividend too big
+股息太大
 ----------------
 
 HLCL.L
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                               Close  Adj Close  Dividends
    2024-06-27 00:00:00+01:00  2.360     2.3600       1.78
    2024-06-26 00:00:00+01:00  2.375     2.3572       0.00
 
-   # REPAIRED:
+   # 修复后:
                               Close  Adj Close  Dividends
    2024-06-27 00:00:00+01:00  2.360     2.3600     0.0178
    2024-06-26 00:00:00+01:00  2.375     2.3572     0.0000
 
-Dividend & adjust too big
+股息和调整太大
 -------------------------
 
 LTI.L
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                               Close  Adj Close     Adj  Dividends
    2024-08-08 00:00:00+01:00  768.0      768.0  1.0000     5150.0
    2024-08-07 00:00:00+01:00  819.0    -4331.0 -5.2882        0.0
@@ -213,54 +213,54 @@ LTI.L
    2024-08-08 00:00:00+01:00  768.0      768.0  1.0000       51.5
    2024-08-07 00:00:00+01:00  819.0      767.5  0.9371        0.0
 
-Dividend too small
+股息太小
 ------------------
 
 BVT.L
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                                Close  Adj Close     Adj  Dividends
    2022-02-03 00:00:00+00:00  0.7534   0.675197  0.8962    0.00001
    2022-02-01 00:00:00+00:00  0.7844   0.702970  0.8962    0.00000
 
 .. code-block:: text
 
-   # REPAIRED:
+   # 修复后:
                                Close  Adj Close     Adj  Dividends
    2022-02-03 00:00:00+00:00  0.7534   0.675197  0.8962      0.001
    2022-02-01 00:00:00+00:00  0.7844   0.702075  0.8950      0.000
 
-Adjusted 2x on day before
+前一天调整了2倍
 -------------------------
 
-clue: Close < Low
+线索：Close < Low
 
 2020.OL
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                                      Low       Close   Adj Close  Dividends
    2023-12-21 00:00:00+01:00  120.199997  121.099998  118.868782       0.18
    2023-12-20 00:00:00+01:00  122.000000  121.900002  119.477371       0.00
 
 .. code-block:: text
 
-   # REPAIRED:
+   # 修复后:
                                      Low       Close   Adj Close  Dividends
    2023-12-21 00:00:00+01:00  120.199997  121.099998  118.868782       0.18
    2023-12-20 00:00:00+01:00  122.000000  122.080002  119.654045       0.00
 
-ex-div date wrong
+除息日期错误
 -----------------
 
 TETY.ST
 
 .. code-block:: text
 
-   # ORIGINAL:
+   # 原始数据:
                                   Close  Adj Close  Dividends
    2022-06-22 00:00:00+02:00  66.699997  60.085415        0.0
    2022-06-21 00:00:00+02:00  71.599998  64.499489        0.0
@@ -269,7 +269,7 @@ TETY.ST
 
 .. code-block:: text
 
-   # REPAIRED:
+   # 修复后:
                                   Close  Adj Close  Dividends
    2022-06-22 00:00:00+02:00  66.699997  60.085415        5.0
    2022-06-21 00:00:00+02:00  71.599998  60.007881        0.0

@@ -1,13 +1,13 @@
 ******
-Config
+配置
 ******
 
-`yfinance` has a new global config for sharing common values.
+`yfinance` 有一个新的全局配置，用于共享通用值。
 
-Proxy
+代理
 -----
 
-Set proxy once in config, affects all yfinance data fetches.
+在配置中设置一次代理，会影响所有 yfinance 数据获取。
 
 .. code-block:: python
 

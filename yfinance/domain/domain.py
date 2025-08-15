@@ -11,17 +11,18 @@ _QUERY_URL_ = f'{_QUERY1_URL_}/v1/finance'
 
 class Domain(ABC):
     """
-    Abstract base class representing a domain entity in financial data, with key attributes 
-    and methods for fetching and parsing data. Derived classes must implement the `_fetch_and_parse()` method.
+    表示金融数据中领域实体的抽象基类，
+    具有用于获取和解析数据的关键属性和方法。
+    派生类必须实现 `_fetch_and_parse()` 方法。
     """
 
     def __init__(self, key: str, session=None, proxy=_SENTINEL_):
         """
-        Initializes the Domain object with a key, session, and proxy.
+        使用键、会话和代理初始化Domain对象。
 
-        Args:
-            key (str): Unique key identifying the domain entity.
-            session (Optional[requests.Session]): Session object for HTTP requests. Defaults to None.
+        参数:
+            key (str): 标识领域实体的唯一键。
+            session (Optional[requests.Session]): 用于HTTP请求的会话对象。默认为None。
         """
         self._key: str = key
         self.session = session
@@ -39,20 +40,20 @@ class Domain(ABC):
     @property
     def key(self) -> str:
         """
-        Retrieves the key of the domain entity.
+        获取领域实体的键。
 
-        Returns:
-            str: The unique key of the domain entity.
+        返回:
+            str: 领域实体的唯一键。
         """
         return self._key
 
     @property
     def name(self) -> str:
         """
-        Retrieves the name of the domain entity.
+        获取领域实体的名称。
 
-        Returns:
-            str: The name of the domain entity.
+        返回:
+            str: 领域实体的名称。
         """
         self._ensure_fetched(self._name)
         return self._name
@@ -60,10 +61,10 @@ class Domain(ABC):
     @property
     def symbol(self) -> str:
         """
-        Retrieves the symbol of the domain entity.
+        获取领域实体的符号。
 
-        Returns:
-            str: The symbol representing the domain entity.
+        返回:
+            str: 表示领域实体的符号。
         """
         self._ensure_fetched(self._symbol)
         return self._symbol
@@ -71,10 +72,10 @@ class Domain(ABC):
     @property
     def ticker(self) -> Ticker:
         """
-        Retrieves a Ticker object based on the domain entity's symbol.
+        根据领域实体的符号获取Ticker对象。
 
-        Returns:
-            Ticker: A Ticker object associated with the domain entity.
+        返回:
+            Ticker: 与领域实体关联的Ticker对象。
         """
         self._ensure_fetched(self._symbol)
         return Ticker(self._symbol)
@@ -82,10 +83,10 @@ class Domain(ABC):
     @property
     def overview(self) -> Dict:
         """
-        Retrieves the overview information of the domain entity.
+        获取领域实体的概览信息。
 
-        Returns:
-            Dict: A dictionary containing an overview of the domain entity.
+        返回:
+            Dict: 包含领域实体概览的字典。
         """
         self._ensure_fetched(self._overview)
         return self._overview
@@ -93,10 +94,10 @@ class Domain(ABC):
     @property
     def top_companies(self) -> Optional[_pd.DataFrame]:
         """
-        Retrieves the top companies within the domain entity.
+        获取领域内的顶尖公司。
 
-        Returns:
-            pandas.DataFrame: A DataFrame containing the top companies in the domain.
+        返回:
+            pandas.DataFrame: 包含领域内顶尖公司的DataFrame。
         """
         self._ensure_fetched(self._top_companies)
         return self._top_companies 
@@ -104,23 +105,23 @@ class Domain(ABC):
     @property
     def research_reports(self) -> List[Dict[str, str]]:
         """
-        Retrieves research reports related to the domain entity.
+        获取与领域实体相关的研究报告。
 
-        Returns:
-            List[Dict[str, str]]: A list of research reports, where each report is a dictionary with metadata.
+        返回:
+            List[Dict[str, str]]: 研究报告列表，每个报告是一个包含元数据的字典。
         """
         self._ensure_fetched(self._research_reports)
         return self._research_reports
 
     def _fetch(self, query_url) -> Dict:
         """
-        Fetches data from the given query URL.
+        从给定的查询URL获取数据。
 
-        Args:
-            query_url (str): The URL used for the data query.
+        参数:
+            query_url (str): 用于数据查询的URL。
 
-        Returns:
-            Dict: The JSON response data from the request.
+        返回:
+            Dict: 请求返回的JSON响应数据。
         """
         params_dict = {"formatted": "true", "withReturns": "true", "lang": "en-US", "region": "US"}
         result = self._data.get_raw_json(query_url, params=params_dict)
@@ -128,10 +129,10 @@ class Domain(ABC):
 
     def _parse_and_assign_common(self, data) -> None:
         """
-        Parses and assigns common data fields such as name, symbol, overview, and top companies.
+        解析并分配通用数据字段，例如名称、符号、概览和顶尖公司。
 
-        Args:
-            data (Dict): The raw data received from the API.
+        参数:
+            data (Dict): 从API接收的原始数据。
         """
         self._name = data.get('name')
         self._symbol = data.get('symbol')
@@ -141,13 +142,13 @@ class Domain(ABC):
 
     def _parse_overview(self, overview) -> Dict:
         """
-        Parses the overview data for the domain entity.
+        解析领域实体的概览数据。
 
-        Args:
-            overview (Dict): The raw overview data.
+        参数:
+            overview (Dict): 原始概览数据。
 
-        Returns:
-            Dict: A dictionary containing parsed overview information.
+        返回:
+            Dict: 包含已解析概览信息的字典。
         """
         return {
             "companies_count": overview.get('companiesCount', None),
@@ -161,13 +162,13 @@ class Domain(ABC):
 
     def _parse_top_companies(self, top_companies) -> Optional[_pd.DataFrame]:
         """
-        Parses the top companies data and converts it into a pandas DataFrame.
+        解析顶尖公司数据并将其转换为pandas DataFrame。
 
-        Args:
-            top_companies (Dict): The raw top companies data.
+        参数:
+            top_companies (Dict): 原始顶尖公司数据。
 
-        Returns:
-            Optional[pandas.DataFrame]: A DataFrame containing top company data, or None if no data is available.
+        返回:
+            Optional[pandas.DataFrame]: 包含顶尖公司数据的DataFrame，如果无数据则返回None。
         """
         top_companies_column = ['symbol', 'name', 'rating', 'market weight']
         top_companies_values = [(c.get('symbol'), 
@@ -183,17 +184,17 @@ class Domain(ABC):
     @abstractmethod
     def _fetch_and_parse(self) -> None:
         """
-        Abstract method for fetching and parsing domain-specific data. 
-        Must be implemented by derived classes.
+        用于获取和解析特定领域数据的抽象方法。
+        必须由派生类实现。
         """
         raise NotImplementedError("_fetch_and_parse() needs to be implemented by children classes")
 
     def _ensure_fetched(self, attribute) -> None:
         """
-        Ensures that the given attribute is fetched by calling `_fetch_and_parse()` if the attribute is None.
+        如果属性为None，则通过调用 `_fetch_and_parse()` 来确保获取该属性。
 
-        Args:
-            attribute: The attribute to check and potentially fetch.
+        参数:
+            attribute: 要检查并可能获取的属性。
         """
         if attribute is None:
             self._fetch_and_parse()

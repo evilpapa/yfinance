@@ -61,54 +61,28 @@ def screen(query: Union[str, EquityQuery, FundQuery],
             userIdType: str = None, 
             session = None, proxy = _SENTINEL_):
     """
-    Run a screen: predefined query, or custom query.
+    运行筛选器：预定义查询或自定义查询。
 
-    :Parameters:
-        * Defaults only apply if query = EquityQuery or FundQuery
+    :参数:
+        * 只有在 query = EquityQuery 或 FundQuery 时才应用默认值
         query : str | Query:
-            The query to execute, either name of predefined or custom query.
-            For predefined list run yf.PREDEFINED_SCREENER_QUERIES.keys()
+            要执行的查询，可以是预定义的名称或自定义查询。
         offset : int
-            The offset for the results. Default 0.
+            结果的偏移量。默认为0。
         size : int
-            number of results to return. Default 100, maximum 250 (Yahoo)
-            Use count instead for predefined queries.
+            返回的结果数。默认为100，最大为250（Yahoo）。
+            对预定义查询使用count。
         count : int
-            number of results to return. Default 25, maximum 250 (Yahoo)
-            Use size instead for custom queries.
+            返回的结果数。默认为25，最大为250（Yahoo）。
+            对自定义查询使用size。
         sortField : str
-            field to sort by. Default "ticker"
+            排序字段。默认为 "ticker"。
         sortAsc : bool
-            Sort ascending? Default False
+            是否升序排序？默认为False。
         userId : str
-            The user ID. Default empty.
+            用户ID。默认为空。
         userIdType : str
-            Type of user ID (e.g., "guid"). Default "guid".
-
-    Example: predefined query
-        .. code-block:: python
-
-            import yfinance as yf
-            response = yf.screen("aggressive_small_caps")
-
-    Example: custom query
-        .. code-block:: python
-
-            import yfinance as yf
-            from yfinance import EquityQuery
-            q = EquityQuery('and', [
-                   EquityQuery('gt', ['percentchange', 3]), 
-                   EquityQuery('eq', ['region', 'us'])
-            ])
-            response = yf.screen(q, sortField = 'percentchange', sortAsc = True)
-
-    To access predefineds query code
-        .. code-block:: python
-
-            import yfinance as yf
-            query = yf.PREDEFINED_SCREENER_QUERIES['aggressive_small_caps']
-
-    {predefined_screeners}
+            用户ID类型（例如，"guid"）。默认为 "guid"。
     """
 
     if proxy is not _SENTINEL_:
@@ -117,9 +91,6 @@ def screen(query: Union[str, EquityQuery, FundQuery],
     else:
         _data = YfData(session=session)
 
-    # Only use defaults when user NOT give a predefined, because
-    # Yahoo's predefined endpoint auto-applies defaults. Also,
-    # that endpoint might be ignoring these fields.
     defaults = {
         'offset': 0,
         'count': 25,
@@ -136,15 +107,12 @@ def screen(query: Union[str, EquityQuery, FundQuery],
         raise ValueError("Yahoo limits query size to 250, reduce size.")
 
     if offset is not None and isinstance(query, str):
-        # offset ignored by predefined API so switch to other API
         post_query = PREDEFINED_SCREENER_QUERIES[query]
         query = post_query['query']
-        # use predefined's attributes if user not specified
         if sortField is None:
             sortField = post_query['sortField']
         if sortAsc is None:
             sortAsc = post_query['sortType'].lower() == 'asc'
-        # and don't use defaults
         defaults = {}
 
     fields = {'offset': offset, 'count': count, "size": size, 'sortField': sortField, 'sortAsc': sortAsc, 'userId': userId, 'userIdType': userIdType}
@@ -153,9 +121,6 @@ def screen(query: Union[str, EquityQuery, FundQuery],
 
     post_query = None
     if isinstance(query, str):
-        # post_query = PREDEFINED_SCREENER_QUERIES[query]
-        # Switch to Yahoo's predefined endpoint
-
         if size is not None:
             warnings.warn("Screen 'size' argument is deprecated for predefined screens, set 'count' instead.", DeprecationWarning, stacklevel=2)
             count = size
@@ -177,7 +142,6 @@ def screen(query: Union[str, EquityQuery, FundQuery],
         return resp.json()["finance"]["result"][0]
 
     elif isinstance(query, QueryBase):
-        # Prepare other fields
         for k in defaults:
             if k not in fields or fields[k] is None:
                 fields[k] = defaults[k]
@@ -199,7 +163,6 @@ def screen(query: Union[str, EquityQuery, FundQuery],
         post_query['quoteType'] = 'MUTUALFUND'
     post_query['query'] = post_query['query'].to_dict()
 
-    # Fetch
     response = _data.post(_SCREENER_URL_, 
                             body=post_query, 
                             params=params_dict)

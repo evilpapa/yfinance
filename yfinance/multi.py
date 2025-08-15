@@ -43,93 +43,82 @@ def download(tickers, start=None, end=None, actions=False, threads=True,
              prepost=False, proxy=_SENTINEL_, rounding=False, timeout=10, session=None,
              multi_level_index=True) -> Union[_pd.DataFrame, None]:
     """
-    Download yahoo tickers
-    :Parameters:
+    下载雅虎股票数据
+    :参数:
         tickers : str, list
-            List of tickers to download
+            要下载的股票代码列表
         period : str
-            Valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
-            Default: 1mo
-            Either Use period parameter or use start and end
+            有效期间: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
+            默认: 1mo
+            使用period参数或使用start和end
         interval : str
-            Valid intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
-            Intraday data cannot extend last 60 days
+            有效间隔: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
+            日内数据不能超过最近60天
         start: str
-            Download start date string (YYYY-MM-DD) or _datetime, inclusive.
-            Default is 99 years ago
-            E.g. for start="2020-01-01", the first data point will be on "2020-01-01"
+            下载开始日期字符串 (YYYY-MM-DD) 或 _datetime, 包含。
+            默认为99年前
+            例如 for start="2020-01-01", 第一个数据点将在 "2020-01-01"
         end: str
-            Download end date string (YYYY-MM-DD) or _datetime, exclusive.
-            Default is now
-            E.g. for end="2023-01-01", the last data point will be on "2022-12-31"
+            下载结束日期字符串 (YYYY-MM-DD) 或 _datetime, 不包含。
+            默认为现在
+            例如 for end="2023-01-01", 最后一个数据点将在 "2022-12-31"
         group_by : str
-            Group by 'ticker' or 'column' (default)
+            按 'ticker' 或 'column' (默认) 分组
         prepost : bool
-            Include Pre and Post market data in results?
-            Default is False
+            在结果中包含盘前和盘后数据？
+            默认为 False
         auto_adjust: bool
-            Adjust all OHLC automatically? Default is True
+            自动调整所有OHLC？默认为 True
         repair: bool
-            Detect currency unit 100x mixups and attempt repair
-            Default is False
+            检测货币单位100倍混淆并尝试修复
+            默认为 False
         keepna: bool
-            Keep NaN rows returned by Yahoo?
-            Default is False
+            保留Yahoo返回的NaN行？
+            默认为 False
         actions: bool
-            Download dividend + stock splits data. Default is False
+            下载股息+股票拆分数据。默认为 False
         threads: bool / int
-            How many threads to use for mass downloading. Default is True
+            用于批量下载的线程数。默认为 True
         ignore_tz: bool
-            When combining from different timezones, ignore that part of datetime.
-            Default depends on interval. Intraday = False. Day+ = True.
+            当从不同时区合并时，忽略datetime的那部分。
+            默认取决于间隔。日内 = False。天+ = True。
         rounding: bool
-            Optional. Round values to 2 decimal places?
+            可选。将值四舍五入到2位小数？
         timeout: None or float
-            If not None stops waiting for a response after given number of
-            seconds. (Can also be a fraction of a second e.g. 0.01)
+            如果不是None，则在给定秒数后停止等待响应。 (也可以是小数，例如 0.01)
         session: None or Session
-            Optional. Pass your own session object to be used for all requests
+            可选。传递您自己的会话对象以用于所有请求
         multi_level_index: bool
-            Optional. Always return a MultiIndex DataFrame? Default is True
+            可选。总是返回一个多级索引的DataFrame？默认为 True
     """
     logger = utils.get_yf_logger()
     session = session or requests.Session(impersonate="chrome")
 
-    # Ensure data initialised with session.
     if proxy is not _SENTINEL_:
         warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=3)
         YfData(proxy=proxy)
     YfData(session=session)
 
     if auto_adjust is None:
-        # Warn users that default has changed to True
         warnings.warn("YF.download() has changed argument auto_adjust default to True", FutureWarning, stacklevel=3)
         auto_adjust = True
 
     if logger.isEnabledFor(logging.DEBUG):
         if threads:
-            # With DEBUG, each thread generates a lot of log messages.
-            # And with multi-threading, these messages will be interleaved, bad!
-            # So disable multi-threading to make log readable.
             logger.debug('Disabling multithreading because DEBUG logging enabled')
             threads = False
         if progress:
-            # Disable progress bar, interferes with display of log messages
             progress = False
 
     if ignore_tz is None:
-        # Set default value depending on interval
         if interval[-1] in ['m', 'h']:
-            # Intraday
             ignore_tz = False
         else:
             ignore_tz = True
 
-    # create ticker list
     tickers = tickers if isinstance(
         tickers, (list, set, tuple)) else tickers.replace(',', ' ').split()
 
-    # accept isin as ticker
     shared._ISINS = {}
     _tickers_ = []
     for ticker in tickers:
@@ -146,12 +135,10 @@ def download(tickers, start=None, end=None, actions=False, threads=True,
     if progress:
         shared._PROGRESS_BAR = utils.ProgressBar(len(tickers), 'completed')
 
-    # reset shared._DFS
     shared._DFS = {}
     shared._ERRORS = {}
     shared._TRACEBACKS = {}
 
-    # download using threads
     if threads:
         if threads is True:
             threads = min([len(tickers), _multitasking.cpu_count() * 2])
@@ -165,7 +152,6 @@ def download(tickers, start=None, end=None, actions=False, threads=True,
                                    rounding=rounding, timeout=timeout)
         while len(shared._DFS) < len(tickers):
             _time.sleep(0.01)
-    # download synchronously
     else:
         for i, ticker in enumerate(tickers):
             data = _download_one(ticker, period=period, interval=interval,
@@ -180,12 +166,10 @@ def download(tickers, start=None, end=None, actions=False, threads=True,
         shared._PROGRESS_BAR.completed()
 
     if shared._ERRORS:
-        # Send errors to logging module
         logger = utils.get_yf_logger()
         logger.error('\n%.f Failed download%s:' % (
             len(shared._ERRORS), 's' if len(shared._ERRORS) > 1 else ''))
 
-        # Log each distinct error once, with list of symbols affected
         errors = {}
         for ticker in shared._ERRORS:
             err = shared._ERRORS[ticker]
@@ -197,7 +181,6 @@ def download(tickers, start=None, end=None, actions=False, threads=True,
         for err in errors.keys():
             logger.error(f'{errors[err]}: ' + err)
 
-        # Log each distinct traceback once, with list of symbols affected
         tbs = {}
         for ticker in shared._TRACEBACKS:
             tb = shared._TRACEBACKS[ticker]
@@ -222,7 +205,6 @@ def download(tickers, start=None, end=None, actions=False, threads=True,
         data = _pd.concat(shared._DFS.values(), axis=1, sort=True,
                           keys=shared._DFS.keys(), names=['Ticker', 'Price'])
     data.index = _pd.to_datetime(data.index, utc=not ignore_tz)
-    # switch names back to isins if applicable
     data.rename(columns=shared._ISINS, inplace=True)
 
     if group_by == 'column':
@@ -236,6 +218,7 @@ def download(tickers, start=None, end=None, actions=False, threads=True,
 
 
 def _realign_dfs():
+    """重新对齐DataFrame"""
     idx_len = 0
     idx = None
 
@@ -253,7 +236,6 @@ def _realign_dfs():
                 utils.empty_df(idx), shared._DFS[key].dropna()
             ], axis=0, sort=True)
 
-        # remove duplicate index
         shared._DFS[key] = shared._DFS[key].loc[
             ~shared._DFS[key].index.duplicated(keep='last')]
 
@@ -264,6 +246,7 @@ def _download_one_threaded(ticker, start=None, end=None,
                            actions=False, progress=True, period="max",
                            interval="1d", prepost=False,
                            keepna=False, rounding=False, timeout=10):
+    """使用线程下载单个股票数据"""
     _download_one(ticker, start, end, auto_adjust, back_adjust, repair,
                          actions, period, interval, prepost, rounding,
                          keepna, timeout)
@@ -276,6 +259,7 @@ def _download_one(ticker, start=None, end=None,
                   actions=False, period="max", interval="1d",
                   prepost=False, rounding=False,
                   keepna=False, timeout=10):
+    """下载单个股票数据"""
     data = None
     try:
         data = Ticker(ticker).history(
@@ -287,7 +271,6 @@ def _download_one(ticker, start=None, end=None,
                 raise_errors=True
         )
     except Exception as e:
-        # glob try/except needed as current thead implementation breaks if exception is raised.
         shared._DFS[ticker.upper()] = utils.empty_df()
         shared._ERRORS[ticker.upper()] = repr(e)
         shared._TRACEBACKS[ticker.upper()] = traceback.format_exc()

@@ -12,14 +12,14 @@ from .domain import Domain, _QUERY_URL_
 
 class Industry(Domain):
     """
-    Represents an industry within a sector.
+    表示行业内的特定行业。
     """
 
     def __init__(self, key, session=None, proxy=_SENTINEL_):
         """
-        Args:
-            key (str): The key identifier for the industry.
-            session (optional): The session to use for requests.
+        参数:
+            key (str): 行业的键标识符。
+            session (optional): 用于请求的会话。
         """
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
@@ -35,20 +35,20 @@ class Industry(Domain):
 
     def __repr__(self):
         """
-        Returns a string representation of the Industry instance.
+        返回Industry实例的字符串表示形式。
         
-        Returns:
-            str: String representation of the Industry instance.
+        返回:
+            str: Industry实例的字符串表示形式。
         """
         return f'yfinance.Industry object <{self._key}>'
     
     @property
     def sector_key(self) -> str:
         """
-        Returns the sector key of the industry.
+        返回行业的板块键。
         
-        Returns:
-            str: The sector key.
+        返回:
+            str: 板块键。
         """
         self._ensure_fetched(self._sector_key)
         return self._sector_key
@@ -56,10 +56,10 @@ class Industry(Domain):
     @property
     def sector_name(self) -> str:
         """
-        Returns the sector name of the industry.
+        返回行业的板块名称。
         
-        Returns:
-            str: The sector name.
+        返回:
+            str: 板块名称。
         """
         self._ensure_fetched(self._sector_name)
         return self._sector_name
@@ -67,10 +67,10 @@ class Industry(Domain):
     @property
     def top_performing_companies(self) -> Optional[_pd.DataFrame]:
         """
-        Returns the top performing companies in the industry.
+        返回行业中表现最佳的公司。
         
-        Returns:
-            Optional[pd.DataFrame]: DataFrame containing top performing companies.
+        返回:
+            Optional[pd.DataFrame]: 包含表现最佳公司的DataFrame。
         """
         self._ensure_fetched(self._top_performing_companies)
         return self._top_performing_companies
@@ -78,23 +78,23 @@ class Industry(Domain):
     @property
     def top_growth_companies(self) -> Optional[_pd.DataFrame]:
         """
-        Returns the top growth companies in the industry.
+        返回行业中增长最快的公司。
         
-        Returns:
-            Optional[pd.DataFrame]: DataFrame containing top growth companies.
+        返回:
+            Optional[pd.DataFrame]: 包含增长最快公司的DataFrame。
         """
         self._ensure_fetched(self._top_growth_companies)
         return self._top_growth_companies
     
     def _parse_top_performing_companies(self, top_performing_companies: Dict) -> Optional[_pd.DataFrame]:
         """
-        Parses the top performing companies data.
+        解析表现最佳的公司数据。
         
-        Args:
-            top_performing_companies (Dict): Dictionary containing top performing companies data.
+        参数:
+            top_performing_companies (Dict): 包含表现最佳公司数据的字典。
         
-        Returns:
-            Optional[pd.DataFrame]: DataFrame containing parsed top performing companies data.
+        返回:
+            Optional[pd.DataFrame]: 包含已解析的表现最佳公司数据的DataFrame。
         """
         compnaies_column = ['symbol','name','ytd return',' last price','target price']
         compnaies_values = [(c.get('symbol', None),
@@ -110,13 +110,13 @@ class Industry(Domain):
     
     def _parse_top_growth_companies(self, top_growth_companies: Dict) -> Optional[_pd.DataFrame]:
         """
-        Parses the top growth companies data.
+        解析增长最快的公司数据。
         
-        Args:
-            top_growth_companies (Dict): Dictionary containing top growth companies data.
+        参数:
+            top_growth_companies (Dict): 包含增长最快公司数据的字典。
         
-        Returns:
-            Optional[pd.DataFrame]: DataFrame containing parsed top growth companies data.
+        返回:
+            Optional[pd.DataFrame]: 包含已解析的增长最快公司数据的DataFrame。
         """
         compnaies_column = ['symbol','name','ytd return',' growth estimate']
         compnaies_values = [(c.get('symbol', None),
@@ -131,7 +131,7 @@ class Industry(Domain):
 
     def _fetch_and_parse(self) -> None:
         """
-        Fetches and parses the industry data.
+        获取并解析行业数据。
         """
         result = None
         

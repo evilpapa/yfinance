@@ -40,8 +40,8 @@ from pytz import UnknownTimeZoneError
 
 from yfinance import const
 
-# From https://stackoverflow.com/a/59128615
 def attributes(obj):
+    """返回一个对象的所有非私有、非方法的属性。"""
     disallowed_names = {
         name for name, value in getmembers(type(obj))
         if isinstance(value, FunctionType)}
@@ -50,10 +50,8 @@ def attributes(obj):
         if name[0] != '_' and name not in disallowed_names and hasattr(obj, name)}
 
 
-# Logging
-# Note: most of this logic is adding indentation with function depth,
-#       so that DEBUG log is readable.
 class IndentLoggerAdapter(logging.LoggerAdapter):
+    """日志适配器，用于添加缩进。"""
     def process(self, msg, kwargs):
         if get_yf_logger().isEnabledFor(logging.DEBUG):
             i = ' ' * self.extra['indent']
@@ -67,6 +65,7 @@ _indentation_level = threading.local()
 
 
 class IndentationContext:
+    """缩进上下文管理器。"""
     def __init__(self, increment=1):
         self.increment = increment
 
@@ -78,11 +77,12 @@ class IndentationContext:
 
 
 def get_indented_logger(name=None):
-    # Never cache the returned value! Will break indentation.
+    """获取带缩进的日志记录器。"""
     return IndentLoggerAdapter(logging.getLogger(name), {'indent': getattr(_indentation_level, 'indent', 0)})
 
 
 def log_indent_decorator(func):
+    """日志缩进装饰器。"""
     @wraps(func)
     def wrapper(*args, **kwargs):
         logger = get_indented_logger('yfinance')
@@ -98,12 +98,9 @@ def log_indent_decorator(func):
 
 
 class MultiLineFormatter(logging.Formatter):
-    # The 'fmt' formatting further down is only applied to first line
-    # of log message, specifically the padding after %level%.
-    # For multi-line messages, need to manually copy over padding.
+    """多行日志格式化器。"""
     def __init__(self, fmt):
         super().__init__(fmt)
-        # Extract amount of padding
         match = _re.search(r'%\(levelname\)-(\d+)s', fmt)
         self.level_length = int(match.group(1)) if match else 0
 
@@ -114,13 +111,12 @@ class MultiLineFormatter(logging.Formatter):
         if len(lines) <= 1:
             return original
         else:
-            # Apply padding to all lines below first
-            formatted = [lines[0]]
             if self.level_length == 0:
                 padding = ' ' * len(levelname)
             else:
                 padding = ' ' * self.level_length
-            padding += ' '  # +1 for space between level and message
+            padding += ' '
+            formatted = [lines[0]]
             formatted.extend(padding + line for line in lines[1:])
             return '\n'.join(formatted)
 
@@ -130,7 +126,7 @@ yf_log_indented = False
 
 
 class YFLogFormatter(logging.Filter):
-    # Help be consistent with structuring YF log messages
+    """YF日志格式化器。"""
     def filter(self, record):
         msg = record.msg
         if hasattr(record, 'yf_cat'):
@@ -144,6 +140,7 @@ class YFLogFormatter(logging.Filter):
 
 
 def get_yf_logger():
+    """获取YF日志记录器。"""
     global yf_logger
     global yf_log_indented
     if yf_log_indented:
@@ -155,6 +152,7 @@ def get_yf_logger():
 
 
 def enable_debug_mode():
+    """启用调试模式。"""
     global yf_logger
     global yf_log_indented
     if not yf_log_indented:
@@ -162,7 +160,6 @@ def enable_debug_mode():
         yf_logger.setLevel(logging.DEBUG)
         if yf_logger.handlers is None or len(yf_logger.handlers) == 0:
             h = logging.StreamHandler()
-            # Ensure different level strings don't interfere with indentation
             formatter = MultiLineFormatter(fmt='%(levelname)-8s %(message)s')
             h.setFormatter(formatter)
             yf_logger.addHandler(h)
@@ -171,19 +168,19 @@ def enable_debug_mode():
 
 
 def is_isin(string):
+    """检查字符串是否为ISIN码。"""
     return bool(_re.match("^([A-Z]{2})([A-Z0-9]{9})([0-9])$", string))
 
 
 def get_all_by_isin(isin):
+    """通过ISIN码获取所有信息。"""
     if not (is_isin(isin)):
         raise ValueError("Invalid ISIN number")
 
-    # Deferred this to prevent circular imports
     from .search import Search
 
     search = Search(query=isin, max_results=1)
 
-    # Extract the first quote and news
     ticker = search.quotes[0] if search.quotes else {}
     news = search.news
 
@@ -200,21 +197,25 @@ def get_all_by_isin(isin):
 
 
 def get_ticker_by_isin(isin):
+    """通过ISIN码获取股票代码。"""
     data = get_all_by_isin(isin)
     return data.get('ticker', {}).get('symbol', '')
 
 
 def get_info_by_isin(isin):
+    """通过ISIN码获取信息。"""
     data = get_all_by_isin(isin)
     return data.get('ticker', {})
 
 
 def get_news_by_isin(isin):
+    """通过ISIN码获取新闻。"""
     data = get_all_by_isin(isin)
     return data.get('news', {})
 
 
 def empty_df(index=None):
+    """创建一个空的DataFrame。"""
     if index is None:
         index = []
     empty = _pd.DataFrame(index=index, data={
@@ -225,6 +226,7 @@ def empty_df(index=None):
 
 
 def empty_earnings_dates_df():
+    """创建一个空的财报日期DataFrame。"""
     empty = _pd.DataFrame(
         columns=["Symbol", "Company", "Earnings Date",
                  "EPS Estimate", "Reported EPS", "Surprise(%)"])
@@ -232,63 +234,39 @@ def empty_earnings_dates_df():
 
 
 def build_template(data):
-    """
-    build_template returns the details required to rebuild any of the yahoo finance financial statements in the same order as the yahoo finance webpage. The function is built to be used on the "FinancialTemplateStore" json which appears in any one of the three yahoo finance webpages: "/financials", "/cash-flow" and "/balance-sheet".
-
-    Returns:
-        - template_annual_order: The order that annual figures should be listed in.
-        - template_ttm_order: The order that TTM (Trailing Twelve Month) figures should be listed in.
-        - template_order: The order that quarterlies should be in (note that quarterlies have no pre-fix - hence why this is required).
-        - level_detail: The level of each individual line item. E.g. for the "/financials" webpage, "Total Revenue" is a level 0 item and is the summation of "Operating Revenue" and "Excise Taxes" which are level 1 items.
-
-    """
-    template_ttm_order = []  # Save the TTM (Trailing Twelve Months) ordering to an object.
-    template_annual_order = []  # Save the annual ordering to an object.
-    template_order = []  # Save the ordering to an object (this can be utilized for quarterlies)
-    level_detail = []  # Record the level of each line item of the income statement ("Operating Revenue" and "Excise Taxes" sum to return "Total Revenue" we need to keep track of this)
+    """构建财务报表模板。"""
+    template_ttm_order = []
+    template_annual_order = []
+    template_order = []
+    level_detail = []
 
     def traverse(node, level):
-        """
-        A recursive function that visits a node and its children.
-
-        Args:
-            node: The current node in the data structure.
-            level: The depth of the current node in the data structure.
-        """
-        if level > 5:  # Stop when level is above 5
+        if level > 5:
             return
         template_ttm_order.append(f"trailing{node['key']}")
         template_annual_order.append(f"annual{node['key']}")
         template_order.append(f"{node['key']}")
         level_detail.append(level)
-        if 'children' in node:  # Check if the node has children
-            for child in node['children']:  # If yes, traverse each child
-                traverse(child, level + 1)  # Increment the level by 1 for each child
+        if 'children' in node:
+            for child in node['children']:
+                traverse(child, level + 1)
 
-    for key in data['template']:  # Loop through the data
-        traverse(key, 0)  # Call the traverse function with initial level being 0
+    for key in data['template']:
+        traverse(key, 0)
 
     return template_ttm_order, template_annual_order, template_order, level_detail
 
 
 def retrieve_financial_details(data):
-    """
-    retrieve_financial_details returns all of the available financial details under the
-    "QuoteTimeSeriesStore" for any of the following three yahoo finance webpages:
-    "/financials", "/cash-flow" and "/balance-sheet".
+    """检索财务细节。"""
+    TTM_dicts = []
+    Annual_dicts = []
 
-    Returns:
-        - TTM_dicts: A dictionary full of all of the available Trailing Twelve Month figures, this can easily be converted to a pandas dataframe.
-        - Annual_dicts: A dictionary full of all of the available Annual figures, this can easily be converted to a pandas dataframe.
-    """
-    TTM_dicts = []  # Save a dictionary object to store the TTM financials.
-    Annual_dicts = []  # Save a dictionary object to store the Annual financials.
-
-    for key, timeseries in data.get('timeSeries', {}).items():  # Loop through the time series data to grab the key financial figures.
+    for key, timeseries in data.get('timeSeries', {}).items():
         try:
             if timeseries:
                 time_series_dict = {'index': key}
-                for each in timeseries:  # Loop through the years
+                for each in timeseries:
                     if not each:
                         continue
                     time_series_dict[each.get('asOfDate')] = each.get('reportedValue')
@@ -302,21 +280,13 @@ def retrieve_financial_details(data):
 
 
 def format_annual_financial_statement(level_detail, annual_dicts, annual_order, ttm_dicts=None, ttm_order=None):
-    """
-    format_annual_financial_statement formats any annual financial statement
-
-    Returns:
-        - _statement: A fully formatted annual financial statement in pandas dataframe.
-    """
+    """格式化年度财务报表。"""
     Annual = _pd.DataFrame.from_dict(annual_dicts).set_index("index")
     Annual = Annual.reindex(annual_order)
     Annual.index = Annual.index.str.replace(r'annual', '')
 
-    # Note: balance sheet is the only financial statement with no ttm detail
     if ttm_dicts and ttm_order:
         TTM = _pd.DataFrame.from_dict(ttm_dicts).set_index("index").reindex(ttm_order)
-        # Add 'TTM' prefix to all column names, so if combined we can tell
-        # the difference between actuals and TTM (similar to yahoo finance).
         TTM.columns = ['TTM ' + str(col) for col in TTM.columns]
         TTM.index = TTM.index.str.replace(r'trailing', '')
         _statement = Annual.merge(TTM, left_index=True, right_index=True)
@@ -332,12 +302,7 @@ def format_annual_financial_statement(level_detail, annual_dicts, annual_order, 
 
 
 def format_quarterly_financial_statement(_statement, level_detail, order):
-    """
-    format_quarterly_financial_statements formats any quarterly financial statement
-
-    Returns:
-        - _statement: A fully formatted quarterly financial statement in pandas dataframe.
-    """
+    """格式化季度财务报表。"""
     _statement = _statement.reindex(order)
     _statement.index = camel2title(_statement.T)
     _statement['level_detail'] = level_detail
@@ -349,6 +314,7 @@ def format_quarterly_financial_statement(_statement, level_detail, order):
 
 
 def camel2title(strings: List[str], sep: str = ' ', acronyms: Optional[List[str]] = None) -> List[str]:
+    """将驼峰命名转换为标题格式。"""
     if isinstance(strings, str) or not hasattr(strings, '__iter__'):
         raise TypeError("camel2title() 'strings' argument must be iterable of strings")
     if len(strings) == 0:
@@ -360,7 +326,6 @@ def camel2title(strings: List[str], sep: str = ' ', acronyms: Optional[List[str]
     if _re.match("[a-zA-Z0-9]", sep):
         raise ValueError(f"camel2title() 'sep' argument = '{sep}' cannot be alpha-numeric")
     if _re.escape(sep) != sep and sep not in {' ', '-'}:
-        # Permit some exceptions, I don't understand why they get escaped
         raise ValueError(f"camel2title() 'sep' argument = '{sep}' cannot be special character")
 
     if acronyms is None:
@@ -368,25 +333,21 @@ def camel2title(strings: List[str], sep: str = ' ', acronyms: Optional[List[str]
         rep = rf"\g<1>{sep}\g<2>"
         return [_re.sub(pat, rep, s).title() for s in strings]
 
-    # Handling acronyms requires more care. Assumes Yahoo returns acronym strings upper-case
     if isinstance(acronyms, str) or not hasattr(acronyms, '__iter__') or not isinstance(acronyms[0], str):
         raise TypeError("camel2title() 'acronyms' argument must be iterable of strings")
     for a in acronyms:
         if not _re.match("^[A-Z]+$", a):
             raise ValueError(f"camel2title() 'acronyms' argument must only contain upper-case, but '{a}' detected")
 
-    # Insert 'sep' between lower-then-upper-case
     pat = "([a-z])([A-Z])"
     rep = rf"\g<1>{sep}\g<2>"
     strings = [_re.sub(pat, rep, s) for s in strings]
 
-    # Insert 'sep' after acronyms
     for a in acronyms:
         pat = f"({a})([A-Z][a-z])"
         rep = rf"\g<1>{sep}\g<2>"
         strings = [_re.sub(pat, rep, s) for s in strings]
 
-    # Apply str.title() to non-acronym words
     strings = [s.split(sep) for s in strings]
     strings = [[j.title() if j not in acronyms else j for j in s] for s in strings]
     strings = [sep.join(s) for s in strings]
@@ -395,23 +356,22 @@ def camel2title(strings: List[str], sep: str = ' ', acronyms: Optional[List[str]
 
 
 def snake_case_2_camelCase(s):
+    """将蛇形命名转换为驼峰命名。"""
     sc = s.split('_')[0] + ''.join(x.title() for x in s.split('_')[1:])
     return sc
 
 
 def _parse_user_dt(dt, exchange_tz):
+    """解析用户输入的日期时间。"""
     if isinstance(dt, int):
-        # Should already be epoch, test with conversion:
         dt = _pd.Timestamp(_datetime.datetime.fromtimestamp(dt)).tz_localize("UTC").tz_convert(exchange_tz)
     else:
-        # Convert str/date -> datetime, set tzinfo=exchange, get timestamp:
         if isinstance(dt, str):
             dt = _datetime.datetime.strptime(str(dt), '%Y-%m-%d')
         if isinstance(dt, _datetime.date) and not isinstance(dt, _datetime.datetime):
             dt = _datetime.datetime.combine(dt, _datetime.time(0))
         if isinstance(dt, _datetime.datetime):
             if dt.tzinfo is None:
-                # Assume user is referring to exchange's timezone
                 dt = _pd.Timestamp(dt).tz_localize(exchange_tz)
             else:
                 dt = _pd.Timestamp(dt).tz_convert(exchange_tz)
@@ -419,6 +379,7 @@ def _parse_user_dt(dt, exchange_tz):
 
 
 def _interval_to_timedelta(interval):
+    """将间隔字符串转换为timedelta。"""
     if interval[-1] == "d":
         return relativedelta(days=int(interval[:-1]))
     elif interval[-2:] == "wk":
@@ -432,16 +393,16 @@ def _interval_to_timedelta(interval):
 
 
 def is_valid_period_format(period):
-    """Check if the provided period has a valid format."""
+    """检查期间格式是否有效。"""
     if period is None:
         return False
 
-    # Regex pattern to match valid period formats like '1d', '2wk', '3mo', '1y'
     valid_pattern = r"^[1-9]\d*(d|wk|mo|y)$"
     return bool(re.match(valid_pattern, period))
 
 
 def auto_adjust(data):
+    """自动调整数据。"""
     col_order = data.columns
     df = data.copy()
     ratio = (df["Adj Close"] / df["Close"]).to_numpy()
@@ -462,8 +423,7 @@ def auto_adjust(data):
 
 
 def back_adjust(data):
-    """ back-adjusted data to mimic true historical prices """
-
+    """向后调整数据。"""
     col_order = data.columns
     df = data.copy()
     ratio = df["Adj Close"] / df["Close"]
@@ -484,6 +444,7 @@ def back_adjust(data):
 
 
 def parse_quotes(data):
+    """解析报价。"""
     timestamps = data["timestamp"]
     ohlc = data["indicators"]["quote"][0]
     volumes = ohlc["volume"]
@@ -510,6 +471,7 @@ def parse_quotes(data):
 
 
 def parse_actions(data):
+    """解析公司行动。"""
     dividends = None
     capital_gains = None
     splits = None
@@ -522,7 +484,6 @@ def parse_actions(data):
             dividends.index = _pd.to_datetime(dividends.index, unit="s")
             dividends.sort_index(inplace=True)
             if 'currency' in dividends.columns and (dividends['currency'] == '').all():
-                # Currency column useless, drop it.
                 dividends = dividends.drop('currency', axis=1)
             dividends = dividends.rename(columns={'amount': 'Dividends'})
 
@@ -557,6 +518,7 @@ def parse_actions(data):
 
 
 def set_df_tz(df, interval, tz):
+    """设置DataFrame的时区。"""
     if df.index.tz is None:
         df.index = df.index.tz_localize("UTC")
     df.index = df.index.tz_convert(tz)
@@ -564,36 +526,23 @@ def set_df_tz(df, interval, tz):
 
 
 def fix_Yahoo_returning_prepost_unrequested(quotes, interval, tradingPeriods):
-    # Sometimes Yahoo returns post-market data despite not requesting it.
-    # Normally happens on half-day early closes.
-    #
-    # And sometimes returns pre-market data despite not requesting it.
-    # E.g. some London tickers.
+    """修复Yahoo返回未请求的盘前盘后数据的问题。"""
     tps_df = tradingPeriods.copy()
     tps_df["_date"] = tps_df.index.date
     quotes["_date"] = quotes.index.date
     idx = quotes.index.copy()
     quotes = quotes.merge(tps_df, how="left")
     quotes.index = idx
-    # "end" = end of regular trading hours (including any auction)
     f_drop = quotes.index >= quotes["end"]
     f_drop = f_drop | (quotes.index < quotes["start"])
     if f_drop.any():
-        # When printing report, ignore rows that were already NaNs:
-        # f_na = quotes[["Open","Close"]].isna().all(axis=1)
-        # n_nna = quotes.shape[0] - _np.sum(f_na)
-        # n_drop_nna = _np.sum(f_drop & ~f_na)
-        # quotes_dropped = quotes[f_drop]
-        # if debug and n_drop_nna > 0:
-        #     print(f"Dropping {n_drop_nna}/{n_nna} intervals for falling outside regular trading hours")
         quotes = quotes[~f_drop]
     quotes = quotes.drop(["_date", "start", "end"], axis=1)
     return quotes
 
 
 def _dts_in_same_interval(dt1, dt2, interval):
-    # Check if second date dt2 in interval starting at dt1
-
+    """检查两个日期时间是否在同一间隔内。"""
     if interval == '1d':
         last_rows_same_interval = dt1.date() == dt2.date()
     elif interval == "1wk":
@@ -613,11 +562,7 @@ def _dts_in_same_interval(dt1, dt2, interval):
 
 
 def fix_Yahoo_returning_live_separate(quotes, interval, tz_exchange, prepost, repair=False, currency=None):
-    # Yahoo bug fix. If market is open today then Yahoo normally returns
-    # todays data as a separate row from rest-of week/month interval in above row.
-    # Seems to depend on what exchange e.g. crypto OK.
-    # Fix = merge them together
-
+    """修复Yahoo将实时数据作为单独行返回的问题。"""
     if interval[-1] not in ['m', 'h']:
         prepost = False
 
@@ -631,52 +576,37 @@ def fix_Yahoo_returning_live_separate(quotes, interval, tz_exchange, prepost, re
         dt1 = dt1.tz_convert(tz_exchange)
         dt2 = dt2.tz_convert(tz_exchange)
         if interval == "1d":
-            # Similar bug in daily data except most data is simply duplicated
-            # - exception is volume, *slightly* greater on final row (and matches website)
             if dt1.date() == dt2.date():
-                # Last two rows are on same day. Drop second-to-last row
                 dropped_row = quotes.iloc[-2]
                 quotes = _pd.concat([quotes.iloc[:-2], quotes.iloc[-1:]])
         else:
             if _dts_in_same_interval(dt2, dt1, interval):
-                # Last two rows are within same interval
                 idx1 = quotes.index[-1]
                 idx2 = quotes.index[-2]
                 if idx1 == idx2:
-                    # Yahoo returning last interval duplicated, which means
-                    # Yahoo is not returning live data (phew!)
                     return quotes, None
 
                 if prepost:
-                    # Possibly dt1 is just start of post-market
                     if dt1.second == 0:
-                        # assume post-market interval
                         return quotes, None
 
                 ss = quotes['Stock Splits'].iloc[-2:].replace(0,1).prod()
                 if repair:
-                    # First, check if one row is ~100x the other. A £/pence mixup on LSE.
-                    # Avoid if a stock split near 100
                     if currency == 'KWF':
-                        # Kuwaiti Dinar divided into 1000 not 100
                         currency_divide = 1000
                     else:
                         currency_divide = 100
-                    # if ss < 75 or ss > 125:
                     if abs(ss/currency_divide-1) > 0.25:
                         ratio = quotes.loc[idx1, const._PRICE_COLNAMES_] / quotes.loc[idx2, const._PRICE_COLNAMES_]
                         if ((ratio/currency_divide-1).abs() < 0.05).all():
-                            # newer prices are 100x
                             for c in const._PRICE_COLNAMES_:
                                 quotes.loc[idx2, c] *= 100
                         elif((ratio*currency_divide-1).abs() < 0.05).all():
-                            # newer prices are 0.01x
                             for c in const._PRICE_COLNAMES_:
                                 quotes.loc[idx2, c] *= 0.01
 
                 if _np.isnan(quotes.loc[idx2, "Open"]):
                     quotes.loc[idx2, "Open"] = quotes["Open"].iloc[-1]
-                # Note: nanmax() & nanmin() ignores NaNs, but still need to check not all are NaN to avoid warnings
                 if not _np.isnan(quotes["High"].iloc[-1]):
                     quotes.loc[idx2, "High"] = _np.nanmax([quotes["High"].iloc[-1], quotes["High"].iloc[-2]])
                     if "Adj High" in quotes.columns:
@@ -701,6 +631,7 @@ def fix_Yahoo_returning_live_separate(quotes, interval, tz_exchange, prepost, re
 
 
 def safe_merge_dfs(df_main, df_sub, interval):
+    """安全地合并DataFrame。"""
     if df_sub.empty:
         raise Exception("No data to merge")
     if df_main.empty:
@@ -716,9 +647,6 @@ def safe_merge_dfs(df_main, df_sub, interval):
 
     td = _interval_to_timedelta(interval)
     if intraday:
-        # On some exchanges the event can occur before market open.
-        # Problem when combining with intraday data.
-        # Solution = use dates, not datetimes, to map/merge.
         df_main['_date'] = df_main.index.date
         df_sub['_date'] = df_sub.index.date
         indices = _np.searchsorted(_np.append(df_main['_date'], [df_main['_date'].iloc[-1]+td]), df_sub['_date'], side='left')
@@ -726,25 +654,21 @@ def safe_merge_dfs(df_main, df_sub, interval):
         df_sub = df_sub.drop('_date', axis=1)
     else:
         indices = _np.searchsorted(_np.append(df_main.index, df_main.index[-1] + td), df_sub.index, side='right')
-        indices -= 1  # Convert from [[i-1], [i]) to [[i], [i+1])
-    # Numpy.searchsorted does not handle out-of-range well, so handle manually:
+        indices -= 1
     if intraday:
         for i in range(len(df_sub.index)):
             dt = df_sub.index[i].date()
             if dt < df_main.index[0].date() or dt >= df_main.index[-1].date() + _datetime.timedelta(days=1):
-                # Out-of-range
                 indices[i] = -1
     else:
         for i in range(len(df_sub.index)):
             dt = df_sub.index[i]
             if dt < df_main.index[0] or dt >= df_main.index[-1] + td:
-                # Out-of-range
                 indices[i] = -1
 
     f_outOfRange = indices == -1
     if f_outOfRange.any():
         if intraday:
-            # Discard out-of-range dividends in intraday data, assume user not interested
             df_sub = df_sub[~f_outOfRange]
             if df_sub.empty:
                 df_main['Dividends'] = 0.0
@@ -752,15 +676,12 @@ def safe_merge_dfs(df_main, df_sub, interval):
         else:
             empty_row_data = {**{c:[_np.nan] for c in const._PRICE_COLNAMES_}, 'Volume':[0]}
             if interval == '1d':
-                # For 1d, add all out-of-range event dates
                 for i in _np.where(f_outOfRange)[0]:
                     dt = df_sub.index[i]
                     get_yf_logger().debug(f"Adding out-of-range {data_col} @ {dt.date()} in new prices row of NaNs")
                     empty_row = _pd.DataFrame(data=empty_row_data, index=[dt])
                     df_main = _pd.concat([df_main, empty_row], sort=True)
             else:
-                # Else, only add out-of-range event dates if occurring in interval
-                # immediately after last price row
                 last_dt = df_main.index[-1]
                 next_interval_start_dt = last_dt + td
                 next_interval_end_dt = next_interval_start_dt + td
@@ -772,14 +693,11 @@ def safe_merge_dfs(df_main, df_sub, interval):
                         df_main = _pd.concat([df_main, empty_row], sort=True)
             df_main = df_main.sort_index()
 
-            # Re-calculate indices
             indices = _np.searchsorted(_np.append(df_main.index, df_main.index[-1] + td), df_sub.index, side='right')
-            indices -= 1  # Convert from [[i-1], [i]) to [[i], [i+1])
-            # Numpy.searchsorted does not handle out-of-range well, so handle manually:
+            indices -= 1
             for i in range(len(df_sub.index)):
                 dt = df_sub.index[i]
                 if dt < df_main.index[0] or dt >= df_main.index[-1] + td:
-                    # Out-of-range
                     indices[i] = -1
 
     f_outOfRange = indices == -1
@@ -792,18 +710,14 @@ def safe_merge_dfs(df_main, df_sub, interval):
 
     def _reindex_events(df, new_index, data_col_name):
         if len(new_index) == len(set(new_index)):
-            # No duplicates, easy
             df.index = new_index
             return df
 
         df["_NewIndex"] = new_index
-        # Duplicates present within periods but can aggregate
         if data_col_name in ["Dividends", "Capital Gains"]:
-            # Add
             df = df.groupby("_NewIndex").sum()
             df.index.name = None
         elif data_col_name == "Stock Splits":
-            # Product
             df = df.groupby("_NewIndex").prod()
             df.index.name = None
         else:
@@ -825,11 +739,8 @@ def safe_merge_dfs(df_main, df_sub, interval):
 
 
 def fix_Yahoo_dst_issue(df, interval):
+    """修复Yahoo夏令时问题。"""
     if interval in ["1d", "1w", "1wk"]:
-        # These intervals should start at time 00:00. But for some combinations of date and timezone,
-        # Yahoo has time off by few hours (e.g. Brazil 23:00 around Jan-2022). Suspect DST problem.
-        # The clue is (a) minutes=0 and (b) hour near 0.
-        # Obviously Yahoo meant 00:00, so ensure this doesn't affect date conversion:
         f_pre_midnight = (df.index.minute == 0) & (df.index.hour.isin([22, 23]))
         dst_error_hours = _np.array([0] * df.shape[0])
         dst_error_hours[f_pre_midnight] = 24 - df.index[f_pre_midnight].hour
@@ -838,6 +749,7 @@ def fix_Yahoo_dst_issue(df, interval):
 
 
 def is_valid_timezone(tz: str) -> bool:
+    """检查时区是否有效。"""
     try:
         _tz.timezone(tz)
     except UnknownTimeZoneError:
@@ -846,6 +758,7 @@ def is_valid_timezone(tz: str) -> bool:
 
 
 def format_history_metadata(md, tradingPeriodsOnly=True):
+    """格式化历史元数据。"""
     if not isinstance(md, dict):
         return md
     if len(md) == 0:
@@ -871,17 +784,14 @@ def format_history_metadata(md, tradingPeriodsOnly=True):
     if "tradingPeriods" in md:
         tps = md["tradingPeriods"]
         if tps == {"pre": [], "post": []}:
-            # Ignore
             pass
         elif isinstance(tps, (list, dict)):
             if isinstance(tps, list):
-                # Only regular times
                 df = _pd.DataFrame.from_records(_np.hstack(tps))
                 df = df.drop(["timezone", "gmtoffset"], axis=1)
                 df["start"] = _pd.to_datetime(df["start"], unit='s', utc=True).dt.tz_convert(tz)
                 df["end"] = _pd.to_datetime(df["end"], unit='s', utc=True).dt.tz_convert(tz)
             elif isinstance(tps, dict):
-                # Includes pre- and post-market
                 pre_df = _pd.DataFrame.from_records(_np.hstack(tps["pre"]))
                 post_df = _pd.DataFrame.from_records(_np.hstack(tps["post"]))
                 regular_df = _pd.DataFrame.from_records(_np.hstack(tps["regular"]))
@@ -906,6 +816,7 @@ def format_history_metadata(md, tradingPeriodsOnly=True):
 
 
 class ProgressBar:
+    """进度条。"""
     def __init__(self, iterations, text='completed'):
         self.text = text
         self.iterations = iterations
@@ -952,16 +863,10 @@ class ProgressBar:
         return str(self.prog_bar)
 
 def dynamic_docstring(placeholders: dict):
-    """
-    A decorator to dynamically update the docstring of a function or method.
-    
-    Args:
-        placeholders (dict): A dictionary where keys are placeholder names and values are the strings to insert.
-    """
+    """动态更新文档字符串的装饰器。"""
     def decorator(func):
         if func.__doc__:
             docstring = func.__doc__
-            # Replace each placeholder with its corresponding value
             for key, value in placeholders.items():
                 docstring = docstring.replace(f"{{{key}}}", value)
             func.__doc__ = docstring
@@ -984,9 +889,7 @@ def _generate_table_configurations(title = None) -> str:
     return table
 
 def generate_list_table_from_dict(data: dict, bullets: bool=True, title: str=None) -> str:
-    """
-    Generate a list-table for the docstring showing permitted keys/values.
-    """
+    """从字典生成列表表格。"""
     table = _generate_table_configurations(title)
     for k in sorted(data.keys()):
         values = data[k]
@@ -1001,27 +904,8 @@ def generate_list_table_from_dict(data: dict, bullets: bool=True, title: str=Non
             table += ' '*5 + f"- {value_str}\n"
     return table
 
-# def generate_list_table_from_dict_of_dict(data: dict, bullets: bool=True, title: str=None) -> str:
-#     """
-#     Generate a list-table for the docstring showing permitted keys/values.
-#     """
-#     table = _generate_table_configurations(title)
-#     for k in sorted(data.keys()):
-#         values = data[k]
-#         table += ' '*3 + f"* - {k}\n"
-#         if bullets:
-#             table += ' '*5 + "-\n"
-#             for value in sorted(values):
-#                 table += ' '*7 + f"- {value}\n"
-#         else:
-#             table += ' '*5 + f"- {values}\n"
-#     return table
-
-
 def generate_list_table_from_dict_universal(data: dict, bullets: bool=True, title: str=None, concat_keys=[]) -> str:
-    """
-    Generate a list-table for the docstring showing permitted keys/values.
-    """
+    """从通用字典生成列表表格。"""
     table = _generate_table_configurations(title)
     for k in data.keys():
         values = data[k]
@@ -1054,7 +938,6 @@ def generate_list_table_from_dict_universal(data: dict, bullets: bool=True, titl
                         k2_values_str = str(k2_values)
 
                     if len(current_line) > 0 and (len(current_line) + len(k2_values_str) > 40):
-                        # new line
                         table_add += current_line + '\n'
                         current_line = ''
 
@@ -1062,11 +945,9 @@ def generate_list_table_from_dict_universal(data: dict, bullets: bool=True, titl
                         if current_line == '':
                             current_line += ' '*5
                             if i == 0:
-                                # Only add dash to first
                                 current_line += "- "
                             else:
                                 current_line += "  "
-                            # Don't draw bullet points:
                             current_line += '| '
                         else:
                             current_line += '.  '
@@ -1074,13 +955,11 @@ def generate_list_table_from_dict_universal(data: dict, bullets: bool=True, titl
                     else:
                         table_add += ' '*5
                         if i == 0:
-                            # Only add dash to first
                             table_add += "- "
                         else:
                             table_add += "  "
 
                         if '\n' in k2_values_str:
-                            # Block format multiple lines
                             table_add += '| ' + f"{k2}: " + "\n"
                             k2_values_str_lines = k2_values_str.split('\n')
                             for j in range(len(k2_values_str_lines)):

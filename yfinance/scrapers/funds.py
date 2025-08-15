@@ -11,17 +11,17 @@ _QUOTE_SUMMARY_URL_ = f"{_BASE_URL_}/v10/finance/quoteSummary/"
 
 class FundsData:
     """
-    ETF and Mutual Funds Data
-    Queried Modules: quoteType, summaryProfile, fundProfile, topHoldings
+    ETF和共同基金数据
+    查询的模块: quoteType, summaryProfile, fundProfile, topHoldings
 
-    Notes: 
-    - fundPerformance module is not implemented as better data is queryable using history
+    注意:
+    - fundPerformance模块未实现，因为可以使用history查询更好的数据
     """
     def __init__(self, data: YfData, symbol: str, proxy=_SENTINEL_):
         """
-        Args:
-            data (YfData): The YfData object for fetching data.
-            symbol (str): The symbol of the fund.
+        参数:
+            data (YfData): 用于获取数据的YfData对象。
+            symbol (str): 基金的符号。
         """
         self._data = data
         self._symbol = symbol
@@ -29,17 +29,10 @@ class FundsData:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
         
-        # quoteType
         self._quote_type = None
-
-        # summaryProfile
         self._description = None
-
-        # fundProfile
         self._fund_overview = None
         self._fund_operations = None
-
-        # topHoldings
         self._asset_classes = None
         self._top_holdings = None
         self._equity_holdings = None
@@ -49,10 +42,10 @@ class FundsData:
 
     def quote_type(self) -> str:
         """
-        Returns the quote type of the fund.
+        返回基金的报价类型。
 
-        Returns:
-            str: The quote type.
+        返回:
+            str: 报价类型。
         """
         if self._quote_type is None:
             self._fetch_and_parse()
@@ -61,10 +54,10 @@ class FundsData:
     @property
     def description(self) -> str:
         """
-        Returns the description of the fund.
+        返回基金的描述。
 
-        Returns:
-            str: The description.
+        返回:
+            str: 描述。
         """
         if self._description is None:
             self._fetch_and_parse()
@@ -73,10 +66,10 @@ class FundsData:
     @property
     def fund_overview(self) -> Dict[str, Optional[str]]:
         """
-        Returns the fund overview.
+        返回基金概览。
 
-        Returns:
-            Dict[str, Optional[str]]: The fund overview.
+        返回:
+            Dict[str, Optional[str]]: 基金概览。
         """
         if self._fund_overview is None:
             self._fetch_and_parse()
@@ -85,10 +78,10 @@ class FundsData:
     @property
     def fund_operations(self) -> pd.DataFrame:
         """
-        Returns the fund operations.
+        返回基金运营情况。
 
-        Returns:
-            pd.DataFrame: The fund operations.
+        返回:
+            pd.DataFrame: 基金运营情况。
         """
         if self._fund_operations is None:
             self._fetch_and_parse()
@@ -97,10 +90,10 @@ class FundsData:
     @property
     def asset_classes(self) -> Dict[str, float]:
         """
-        Returns the asset classes of the fund.
+        返回基金的资产类别。
 
-        Returns:
-            Dict[str, float]: The asset classes.
+        返回:
+            Dict[str, float]: 资产类别。
         """
         if self._asset_classes is None:
             self._fetch_and_parse()
@@ -109,10 +102,10 @@ class FundsData:
     @property
     def top_holdings(self) -> pd.DataFrame:
         """
-        Returns the top holdings of the fund.
+        返回基金的最高持股。
 
-        Returns:
-            pd.DataFrame: The top holdings.
+        返回:
+            pd.DataFrame: 最高持股。
         """
         if self._top_holdings is None:
             self._fetch_and_parse()
@@ -121,10 +114,10 @@ class FundsData:
     @property
     def equity_holdings(self) -> pd.DataFrame:
         """
-        Returns the equity holdings of the fund.
+        返回基金的股权持有。
 
-        Returns:
-            pd.DataFrame: The equity holdings.
+        返回:
+            pd.DataFrame: 股权持有。
         """
         if self._equity_holdings is None:
             self._fetch_and_parse()
@@ -133,10 +126,10 @@ class FundsData:
     @property
     def bond_holdings(self) -> pd.DataFrame:
         """
-        Returns the bond holdings of the fund.
+        返回基金的债券持有。
 
-        Returns:
-            pd.DataFrame: The bond holdings.
+        返回:
+            pd.DataFrame: 债券持有。
         """
         if self._bond_holdings is None:
             self._fetch_and_parse()
@@ -145,10 +138,10 @@ class FundsData:
     @property
     def bond_ratings(self) -> Dict[str, float]:
         """
-        Returns the bond ratings of the fund.
+        返回基金的债券评级。
 
-        Returns:
-            Dict[str, float]: The bond ratings.
+        返回:
+            Dict[str, float]: 债券评级。
         """
         if self._bond_ratings is None:
             self._fetch_and_parse()
@@ -157,10 +150,10 @@ class FundsData:
     @property
     def sector_weightings(self) -> Dict[str,float]:
         """
-        Returns the sector weightings of the fund.
+        返回基金的行业权重。
 
-        Returns:
-            Dict[str, float]: The sector weightings.
+        返回:
+            Dict[str, float]: 行业权重。
         """
         if self._sector_weightings is None:
             self._fetch_and_parse()
@@ -168,10 +161,10 @@ class FundsData:
 
     def _fetch(self):
         """
-        Fetches the raw JSON data from the API.
+        从API获取原始JSON数据。
 
-        Returns:
-            dict: The raw JSON data.
+        返回:
+            dict: 原始JSON数据。
         """
         modules = ','.join(["quoteType", "summaryProfile", "topHoldings", "fundProfile"])
         params_dict = {"modules": modules, "corsDomain": "finance.yahoo.com", "symbol": self._symbol, "formatted": "false"}
@@ -180,15 +173,13 @@ class FundsData:
 
     def _fetch_and_parse(self) -> None:
         """
-        Fetches and parses the data from the API.
+        从API获取并解析数据。
         """
         result = self._fetch()
         try:
             data = result["quoteSummary"]["result"][0]
-            # check quote type
             self._quote_type = data["quoteType"]["quoteType"]
             
-            # parse "summaryProfile", "topHoldings", "fundProfile"
             self._parse_description(data["summaryProfile"])
             self._parse_top_holdings(data["topHoldings"])
             self._parse_fund_profile(data["fundProfile"])
@@ -205,14 +196,14 @@ class FundsData:
     @staticmethod
     def _parse_raw_values(data, default=None):
         """
-        Parses raw values from the data.
+        从数据中解析原始值。
 
-        Args:
-            data: The data to parse.
-            default: The default value if data is not a dictionary.
+        参数:
+            data: 要解析的数据。
+            default: 如果数据不是字典，则为默认值。
 
-        Returns:
-            The parsed value or the default value.
+        返回:
+            解析后的值或默认值。
         """
         if not isinstance(data, dict):
             return data
@@ -221,21 +212,20 @@ class FundsData:
 
     def _parse_description(self, data) -> None:
         """
-        Parses the description from the data.
+        从数据中解析描述。
 
-        Args:
-            data: The data to parse.
+        参数:
+            data: 要解析的数据。
         """
         self._description = data.get("longBusinessSummary", "")
 
     def _parse_top_holdings(self, data) -> None:
         """
-        Parses the top holdings from the data.
+        从数据中解析最高持股。
 
-        Args:
-            data: The data to parse.
+        参数:
+            data: 要解析的数据。
         """
-        # asset classes
         self._asset_classes = {
             "cashPosition": self._parse_raw_values(data.get("cashPosition", None)),
             "stockPosition": self._parse_raw_values(data.get("stockPosition", None)),
@@ -245,7 +235,6 @@ class FundsData:
             "otherPosition": self._parse_raw_values(data.get("otherPosition", None))
         }
 
-        # top holdings
         _holdings = data.get("holdings", [])
         _symbol, _name, _holding_percent = [], [], []
 
@@ -260,7 +249,6 @@ class FundsData:
             "Holding Percent": _holding_percent
         }).set_index("Symbol")
 
-        # equity holdings
         _equity_holdings = data.get("equityHoldings", {})
         self._equity_holdings = pd.DataFrame({
             "Average": ["Price/Earnings", "Price/Book", "Price/Sales", "Price/Cashflow", "Median Market Cap", "3 Year Earnings Growth"],
@@ -282,7 +270,6 @@ class FundsData:
             ]
         }).set_index("Average")
         
-        # bond holdings
         _bond_holdings = data.get("bondHoldings", {})
         self._bond_holdings = pd.DataFrame({
             "Average": ["Duration", "Maturity", "Credit Quality"],
@@ -298,18 +285,16 @@ class FundsData:
             ]
         }).set_index("Average")
 
-        # bond ratings
         self._bond_ratings = dict((key, d[key]) for d in data.get("bondRatings", []) for key in d)
 
-        # sector weightings
         self._sector_weightings = dict((key, d[key]) for d in data.get("sectorWeightings", []) for key in d)
         
     def _parse_fund_profile(self, data):
         """
-        Parses the fund profile from the data.
+        从数据中解析基金概况。
 
-        Args:
-            data: The data to parse.
+        参数:
+            data: 要解析的数据。
         """
         self._fund_overview = {
             "categoryName": data.get("categoryName", None), 

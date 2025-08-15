@@ -1,861 +1,860 @@
-Change Log
+更新日志
 ===========
 
 0.2.65
 ------
-Financials: ensure dtype float #2563
-Prices: fix handling arguments start/end/period #2561 #2562
-Price repair: when changing FX, update metadata #2558
+财务：确保dtype为float #2563
+价格：修复处理参数start/end/period的问题 #2561 #2562
+价格修复：更改外汇时，更新元数据 #2558
 
 0.2.64
 ------
-Prices:
-- handle dividends with FX, convert if repair=True  #2549
-- fix 'period' arg when start or end set  #2550
-earnings_dates: handle 'Event Type' properly  #2555
+价格：
+- 处理带外汇的股息，如果repair=True则转换 #2549
+- 修复当start或end设置时的'period'参数 #2550
+earnings_dates：正确处理'Event Type' #2555
 
 0.2.63
 ------
-Fix download(ISIN)  # 2531
+修复download(ISIN) #2531
 
 0.2.62
 ------
-Fix prices 'period=max' sometimes failing  # 2509
-ISIN cache  #2516
-Proxy:
-- fix false 'proxy deprecated' messages
-- fix ISIN + proxy  #2514
-- replace print_once with warnings  #2523
-Error handling:
-- detect rate-limit during crumb fetch  #2491
-- replace requests.HTTPError with curl_cffi
+修复'period=max'有时失败的问题 #2509
+ISIN缓存 #2516
+代理：
+- 修复错误的'proxy deprecated'消息
+- 修复ISIN + 代理 #2514
+- 用警告替换print_once #2523
+错误处理：
+- 在crumb获取期间检测速率限制 #2491
+- 用curl_cffi替换requests.HTTPError
 
 0.2.61
 ------
-Fix ALL type hints in websocket #2493
+修复websocket中的所有类型提示 #2493
 
 0.2.60
 ------
-Fix cookie reuse, and handle DNS blocking fc.yahoo.com #2483
-Fixes for websocket:
-- relax protobuf version #2485
-- increase websockets version #2485
-- fix type hints #2488
-Fix predefined screen offset #2440
+修复cookie重用，并处理DNS阻止fc.yahoo.com的问题 #2483
+websocket的修复：
+- 放宽protobuf版本 #2485
+- 增加websockets版本 #2485
+- 修复类型提示 #2488
+修复预定义屏幕偏移 #2440
 
 0.2.59
 ------
-Fix the fix for rate-limit #2452
-Feature: live price data websocket #2201
+修复速率限制的修复 #2452
+功能：实时价格数据websocket #2201
 
 0.2.58
 ------
-Fix false rate-limit problem #2430
-Fix predefined screen size/count #2425
+修复错误的速率限制问题 #2430
+修复预定义屏幕尺寸/计数 #2425
 
 0.2.57
 ------
-Fix proxy msg & pass-thru #2418
+修复代理消息和传递 #2418
 
 0.2.56
 ------
-Features:
-- Ticker lookups #2364
-- Config #2391
-Fixes:
-- converting end epoch to localized dt #2378
+功能：
+- Ticker查找 #2364
+- 配置 #2391
+修复：
+- 将结束纪元转换为本地化dt #2378
 - info IndexError #2382
 - AttributeError: module 'requests.cookies' has no attribute 'update' #2388
 - fix_Yahoo_returning_live_separate() #2389
 
 0.2.55
 ------
-Features
-- TTM financials #2321
-Fixes
+功能
+- TTM财务 #2321
+修复
 - info IndexError #2354
-- earnings dates TZ #2366
-- price repair tweaks & fixes #2368
-- history caching #2345
-- backup fetch TZ from info #2369
-Maintenance
-- log user agent #2326
+- 收益日期时区 #2366
+- 价格修复调整和修复 #2368
+- 历史记录缓存 #2345
+- 从信息中备份获取时区 #2369
+维护
+- 记录用户代理 #2326
 
 0.2.54
 ------
-Hotfix user-agent #2277
+热修复user-agent #2277
 
 0.2.53
 ------
-Fixes:
-- Fix: Failed to parse holders JSON data  #2234
-- Fix: Bad data in Holders #2244
-- Stop CSRF-cookie-fetch fail killing yfinance #2249
-- Fix Market Docs #2250
-- Fix: Broken "See also" links in documentation #2253
-- Fix: Interval check and error message formatting in multi.py #2256
-Improve:
-- Add pre- / post-stock prices (and other useful information) #2212
-- Warn user when use download() without specifying auto_adjust #2230
-- Refactor: Earnings Dates – Switch to API Fetching #2247
-- Improve prices div repair #2260
-Maintenance:
-- Add GitHub Actions workflow and fix failing tests #2233
+修复：
+- 修复：无法解析持有者JSON数据 #2234
+- 修复：持有者数据错误 #2244
+- 停止CSRF-cookie-fetch失败导致yfinance崩溃 #2249
+- 修复市场文档 #2250
+- 修复：文档中“另请参阅”链接损坏 #2253
+- 修复：multi.py中的间隔检查和错误消息格式 #2256
+改进：
+- 添加盘前/盘后股价（以及其他有用信息） #2212
+- 在用户使用download()但未指定auto_adjust时发出警告 #2230
+- 重构：收益日期 – 切换到API获取 #2247
+- 改进价格股息修复 #2260
+维护：
+- 添加GitHub Actions工作流并修复失败的测试 #2233
 
 0.2.52
 ------
-Features:
-- Improve Screener & docs #2207
-- Add Market summary & status #2175
-- Support custom period in Ticker.history() #2192
-- raise YfRateLimitError if rate limited #2108
-- add more options to Search #2191
-Fixes:
-- remove hardcoded keys in Analysis #2194
-- handle Yahoo changed Search response #2202
-Maintenance:
-- add optional dependencies to requirements.txt #2199
+功能：
+- 改进Screener和文档 #2207
+- 添加市场摘要和状态 #2175
+- 在Ticker.history()中支持自定义周期 #2192
+- 如果受到速率限制则引发YfRateLimitError #2108
+- 为Search添加更多选项 #2191
+修复：
+- 删除Analysis中的硬编码键 #2194
+- 处理Yahoo更改的Search响应 #2202
+维护：
+- 将可选依赖项添加到requirements.txt #2199
 
 0.2.51
 ------
-Features:
-- Screener tweaks #2168
-- Search #2160
-- get_news() expose count #2173
-Fixes:
+功能：
+- Screener调整 #2168
+- 搜索 #2160
+- get_news()公开计数 #2173
+修复：
 - earnings_dates #2169
 
 0.2.50
 ------
-Fixes:
-- price repair #2111 #2139
-- download() appearance 2109
-- isin() error #2099
+修复：
+- 价格修复 #2111 #2139
+- download()外观 2109
+- isin()错误 #2099
 - growth_estimates #2127
-Also new docs #2132
+还有新文档 #2132
 
 0.2.49
 ------
-Fix prices-clean rarely discarding good data #2122
+修复prices-clean很少丢弃好数据的问题 #2122
 
-0.2.47 and 0.2.48
+0.2.47 和 0.2.48
 -----------------
-Add yf.download(multi_level_index)
+添加yf.download(multi_level_index)
 
 0.2.46
 ------
-Fix regression in 0.2.45 #2094
+修复0.2.45中的回归 #2094
 
 0.2.45
 ------
-Features:
+功能：
 - Screener #2066 @ericpien
-Fixes
+修复
 - Tickers keyerror #2068 @antoniouaa
-- IndexError in some history() debug messages #2087
-- improve dividend repair #2090
-Maintenance
-- fix unit tests contextual imports #2067
-- fix typos #2072 @algonell
-- add Pyright type checking #2059 @marco-carvalho
+- 某些history()调试消息中的IndexError #2087
+- 改进股息修复 #2090
+维护
+- 修复单元测试上下文导入 #2067
+- 修复拼写错误 #2072 @algonell
+- 添加Pyright类型检查 #2059 @marco-carvalho
 
 0.2.44
 ------
-Features:
-- fetch funds #2041
-- fetch sector & industry #2058
-Fixes:
-- improve dividend repair #2062
+功能：
+- 获取基金 #2041
+- 获取板块和行业 #2058
+修复：
+- 改进股息修复 #2062
 
 0.2.43
 ------
-Fix price-repair bug introduced in 0.2.42 #2036
+修复0.2.42中引入的价格修复错误 #2036
 
 0.2.42
 ------
-Features:
-- fetch SEC filings #2009
-- fetch analysis #2023 @Fidasek009
-- price repair extended to dividends & adjust #2031
-Fixes:
-- fix error on empty options chain #1995 @stevenbischoff
-- use dict.get() to safely access key in Holders #2013 @ericpien
-- fix datetime conversion with mixed timezones when ignore_tz is False #2016 @mreiche
-- handle faulty response object when getting news. #2021 @ericpien
-Maintenance:
-- prices: improve exceptions and logging #2000
+功能：
+- 获取SEC文件 #2009
+- 获取分析 #2023 @Fidasek009
+- 价格修复扩展到股息和调整 #2031
+修复：
+- 修复空期权链上的错误 #1995 @stevenbischoff
+- 使用dict.get()安全访问Holders中的键 #2013 @ericpien
+- 修复当ignore_tz为False时混合时区的日期时间转换 #2016 @mreiche
+- 处理获取新闻时错误的响应对象 #2021 @ericpien
+维护：
+- 价格：改进异常和日志记录 #2000
 
 0.2.41
 ------
-Improvements:
-- add keys to financials #1965 #1985
-- fetch Sustainability #1959
-- improve price-repair-zeroes #1990
-Fixes (prices):
-- fetching when period='max' #1967
-- metadata: Fix '1wk is invalid' & repeated calls #1970
-- Pandas warnings #1955 #1981
-- price repair syntax errors #1989
-Maintenance:
-- deprecate Ticker.earnings #1977
+改进：
+- 为财务添加键 #1965 #1985
+- 获取可持续性 #1959
+- 改进价格修复零值 #1990
+修复（价格）：
+- period='max'时获取 #1967
+- 元数据：修复'1wk无效'和重复调用 #1970
+- Pandas警告 #1955 #1981
+- 价格修复语法错误 #1989
+维护：
+- 弃用Ticker.earnings #1977
 
 0.2.40
 ------
-Fix typo in 0.2.39 c7af213
+修复0.2.39 c7af213中的拼写错误
 
 0.2.39
 ------
-Fixes:
-- Fix switching session from/to requests_cache #1930
-Price repair:
-- Fix potential for price repair to discard price=0 rows #1874
-- Don't price-repair FX volume=0, is normal #1920
-- Improve 'sudden change' repair for splits & currency  #1931
-Information:
-- Fix help(yf.download) not showing the information about the function #1913 @vittoboa
-- Add more specific error throwing based on PR 1918 #1928 @elibroftw @marcofognog
-Maintenance:
-- Replace dead 'appdirs' package with 'platformdirs' #1896
-- Deprecate 'pandas_datareader', remove a deprecated argument #1897
-- Fix: datetime.datetime.utcnow() is deprecated ... #1922
+修复：
+- 修复从/到requests_cache切换会话的问题 #1930
+价格修复：
+- 修复价格修复可能丢弃price=0行的问题 #1874
+- 不要价格修复FX volume=0，这是正常的 #1920
+- 改进拆分和货币的“突然变化”修复 #1931
+信息：
+- 修复help(yf.download)不显示函数信息的问题 #1913 @vittoboa
+- 根据PR 1918添加更具体的错误抛出 #1928 @elibroftw @marcofognog
+维护：
+- 将已失效的'appdirs'包替换为'platformdirs' #1896
+- 弃用'pandas_datareader'，删除一个已弃用的参数 #1897
+- 修复：datetime.datetime.utcnow()已弃用... #1922
 
 0.2.38
 ------
-Fix holders & insiders #1908
+修复持有者和内部人士 #1908
 
 0.2.37
 ------
-Small fixes:
-- Fix Pandas warnings #1838 #1844
-- Fix price repair bug, typos, refactor #1866 #1865 #1849
-- Stop disabling logging #1841
+小修复：
+- 修复Pandas警告 #1838 #1844
+- 修复价格修复错误、拼写错误、重构 #1866 #1865 #1849
+- 停止禁用日志记录 #1841
 
 0.2.36
 ------
-Small fixes:
-- Update README.md for better copy-ability  #1823 
-- Name download() column levels  #1795 
-- Fix history(keepna=False) when repair=True  #1824 
-- Replace empty list with empty pd.Series  #1724 
-- Handle peewee with old sqlite  #1827 
-- Fix JSON error handling  #1830 #1833
+小修复：
+- 更新README.md以提高可复制性 #1823
+- 命名download()列级别 #1795
+- 修复当repair=True时history(keepna=False)的问题 #1824
+- 用空的pd.Series替换空列表 #1724
+- 处理旧sqlite的peewee #1827
+- 修复JSON错误处理 #1830 #1833
 
 0.2.35
 ------
-Internal fixes for 0.2.34
+0.2.34的内部修复
 
 0.2.34
 ------
-Features:
-- Add Recommendations Trend Summary #1754
-- Add Recommendation upgrades & downgrades #1773
-- Add Insider Roster & Transactions #1772
-- Moved download() progress bar to STDERR #1776
-- PIP optional dependencies #1771
-- Set sensible min versions for optional 'nospam' reqs #1807
-Fixes
-- Fix download() DatetimeIndex on invalid symbols #1779
-- Fix invalid date entering cache DB #1796
-- Fix Ticker.calendar fetch #1790
-- Fixed adding complementary to info #1774
-- Ticker.earnings_dates: fix warning "Value 'NaN' has dtype incompatible with float64" #1810
-- Minor fixes for price repair and related tests #1768
-- Fix price repair div adjust #1798
-- Fix 'raise_errors' argument ignored in Ticker.history() #1806
-Maintenance
-- Fix regression: _get_ticker_tz() args were being swapped. Improve its unit test #1793
-- Refactor Ticker proxy #1711
-- Add Ruff linter checks #1756
-- Resolve Pandas FutureWarnings #1766
+功能：
+- 添加推荐趋势摘要 #1754
+- 添加推荐升级和降级 #1773
+- 添加内部人士名册和交易 #1772
+- 将download()进度条移至STDERR #1776
+- PIP可选依赖项 #1771
+- 为可选的'nospam'要求设置合理的最低版本 #1807
+修复
+- 修复无效符号上的download() DatetimeIndex #1779
+- 修复进入缓存数据库的无效日期 #1796
+- 修复Ticker.calendar获取 #1790
+- 修复向info添加补充信息 #1774
+- Ticker.earnings_dates：修复警告“值'NaN'的dtype与float64不兼容” #1810
+- 价格修复和相关测试的小修复 #1768
+- 修复价格修复股息调整 #1798
+- 修复Ticker.history()中忽略'raise_errors'参数的问题 #1806
+维护
+- 修复回归：_get_ticker_tz()参数被交换。改进其单元测试 #1793
+- 重构Ticker代理 #1711
+- 添加Ruff linter检查 #1756
+- 解决Pandas FutureWarnings #1766
 
 0.2.33
 ------
-Cookie fixes:
-- fix backup strategy #1759
-- fix Ticker(ISIN) #1760
+Cookie修复：
+- 修复备份策略 #1759
+- 修复Ticker(ISIN) #1760
 
 0.2.32
 ------
-Add cookie & crumb to requests #1657
+向请求添加cookie和crumb #1657
 
 0.2.31
 ------
-- Fix TZ cache exception blocking import #1705 #1709
-- Fix merging pre-market events with intraday prices #1703
+- 修复TZ缓存异常阻止导入 #1705 #1709
+- 修复将盘前事件与盘中价格合并的问题 #1703
 
 0.2.30
 ------
-- Fix OperationalError #1698
+- 修复OperationalError #1698
 
 0.2.29
 ------
-- Fix pandas warning when retrieving quotes. #1672
-- Replace sqlite3 with peewee for 100% thread-safety #1675
-- Fix merging events with intraday prices #1684
-- Fix error when calling enable_debug_mode twice #1687
-- Price repair fixes #1688
+- 修复检索报价时的pandas警告 #1672
+- 用peewee替换sqlite3以实现100%线程安全 #1675
+- 修复将事件与盘中价格合并的问题 #1684
+- 修复调用enable_debug_mode两次时的错误 #1687
+- 价格修复修复 #1688
 
 0.2.28
 ------
-- Fix TypeError: 'FastInfo' object is not callable #1636
-- Improve & fix price repair #1633 #1660
-- option_chain() also return underlying data #1606
+- 修复TypeError: 'FastInfo' object is not callable #1636
+- 改进和修复价格修复 #1633 #1660
+- option_chain()也返回基础数据 #1606
 
 0.2.27
 ------
-Bug fixes:
-- fix merging 1d-prices with out-of-range divs/splits #1635
-- fix multithread error 'tz already in cache' #1648
+错误修复：
+- 修复将1d价格与超出范围的股息/拆分合并的问题 #1635
+- 修复多线程错误'tz already in cache' #1648
 
 0.2.26
 ------
-Proxy improvements
-- bug fixes #1371
-- security fix #1625
+代理改进
+- 错误修复 #1371
+- 安全修复 #1625
 
 0.2.25
 ------
-Fix single ISIN as ticker #1611
-Fix 'Only 100 years allowed' error #1576
+修复单个ISIN作为ticker #1611
+修复'Only 100 years allowed'错误 #1576
 
 0.2.24
 ------
-Fix info[] missing values #1603
+修复info[]缺失值 #1603
 
 0.2.23
 ------
-Fix 'Unauthorized' error #1595
+修复'Unauthorized'错误 #1595
 
 0.2.22
 ------
-Fix unhandled 'sqlite3.DatabaseError' #1574
+修复未处理的'sqlite3.DatabaseError' #1574
 
 0.2.21
 ------
-Fix financials tables #1568
-Price repair update: fix Yahoo messing up dividend and split adjustments #1543
-Fix logging behaviour #1562
-Fix merge future div/split into prices #1567
+修复财务表格 #1568
+价格修复更新：修复Yahoo弄乱股息和拆分调整的问题 #1543
+修复日志记录行为 #1562
+修复将未来股息/拆分合并到价格中 #1567
 
 0.2.20
 ------
-Switch to `logging` module #1493 #1522 #1541
-Price history:
-- optimise #1514
-- fixes #1523
-- fix TZ-cache corruption #1528
+切换到`logging`模块 #1493 #1522 #1541
+价格历史：
+- 优化 #1514
+- 修复 #1523
+- 修复TZ缓存损坏 #1528
 
 0.2.18
 ------
-Fix 'fast_info' error '_np not found' #1496
-Fix bug in timezone cache #1498
+修复'fast_info'错误'_np not found' #1496
+修复时区缓存中的错误 #1498
 
 0.2.17
 ------
-Fix prices error with Pandas 2.0 #1488
+修复Pandas 2.0的价格错误 #1488
 
 0.2.16
 ------
-Fix 'fast_info deprecated' msg appearing at Ticker() init
+修复在Ticker()初始化时出现的'fast_info deprecated'消息
 
 0.2.15
 ------
-Restore missing Ticker.info keys #1480
+恢复缺失的Ticker.info键 #1480
 
 0.2.14
 ------
-Fix Ticker.info dict by fetching from API #1461
+通过从API获取修复Ticker.info字典 #1461
 
 0.2.13
 ------
-Price bug fixes:
-- fetch big-interval with Capital Gains #1455
-- merging dividends & splits with prices #1452
+价格错误修复：
+- 获取具有资本收益的大间隔 #1455
+- 将股息和拆分与价格合并 #1452
 
 0.2.12
 ------
-Disable annoying 'backup decrypt' msg
+禁用烦人的'backup decrypt'消息
 
 0.2.11
 ------
-Fix history_metadata accesses for unusual symbols #1411
+修复不寻常符号的history_metadata访问 #1411
 
 0.2.10
 ------
-General
-- allow using sqlite3 < 3.8.2 #1380
-- add another backup decrypt option #1379
-Prices
-- restore original download() timezone handling #1385
-- fix & improve price repair #1289 2a2928b 86d6acc
-- drop intraday intervals if in post-market but prepost=False #1311
-Info
-- fast_info improvements:
-  - add camelCase keys, add dict functions values() & items() #1368
-  - fix fast_info["previousClose"] #1383
-- catch TypeError Exception #1397
+常规
+- 允许使用sqlite3 < 3.8.2 #1380
+- 添加另一个备份解密选项 #1379
+价格
+- 恢复原始download()时区处理 #1385
+- 修复和改进价格修复 #1289 2a2928b 86d6acc
+- 如果在盘后但prepost=False，则删除盘中间隔 #1311
+信息
+- fast_info改进：
+  - 添加驼峰式键，添加字典函数values()和items() #1368
+  - 修复fast_info["previousClose"] #1383
+- 捕获TypeError异常 #1397
 
 0.2.9
 -----
-- Fix fast_info bugs #1362
+- 修复fast_info错误 #1362
 
 0.2.7
 -----
-- Fix Yahoo decryption, smarter this time #1353
-- Rename basic_info -> fast_info #1354
+- 修复Yahoo解密，这次更聪明 #1353
+- 重命名basic_info -> fast_info #1354
 
 0.2.6
 -----
-- Fix Ticker.basic_info lazy-loading #1342
+- 修复Ticker.basic_info延迟加载 #1342
 
 0.2.5
 -----
-- Fix Yahoo data decryption again #1336
-- New: Ticker.basic_info - faster Ticker.info #1317
+- 再次修复Yahoo数据解密 #1336
+- 新功能：Ticker.basic_info - 更快的Ticker.info #1317
 
 0.2.4
 -----
-- Fix Yahoo data decryption #1297
-- New feature: 'Ticker.get_shares_full()' #1301
-- Improve caching of financials data #1284
-- Restore download() original alignment behaviour #1283
-- Fix the database lock error in multithread download #1276
+- 修复Yahoo数据解密 #1297
+- 新功能：'Ticker.get_shares_full()' #1301
+- 改进财务数据缓存 #1284
+- 恢复download()原始对齐行为 #1283
+- 修复多线程下载中的数据库锁定错误 #1276
 
 0.2.3
 -----
-- Make financials API '_' use consistent
+- 使财务API '_'使用保持一致
 
 0.2.2
 -----
-- Restore 'financials' attribute (map to 'income_stmt')
+- 恢复'financials'属性（映射到'income_stmt'）
 
 0.2.1
 -----
-Release!
+发布！
 
 0.2.0rc5
 --------
-- Improve financials error handling #1243
-- Fix '100x price' repair #1244
+- 改进财务错误处理 #1243
+- 修复'100x price'修复 #1244
 
 0.2.0rc4
 --------
-- Access to old financials tables via `get_income_stmt(legacy=True)`
-- Optimise scraping financials & fundamentals, 2x faster
-- Add 'capital gains' alongside dividends & splits for ETFs, and metadata available via `history_metadata`, plus a bunch of price fixes
-For full list of changes see #1238
+- 通过`get_income_stmt(legacy=True)`访问旧财务表格
+- 优化抓取财务和基本面，速度提高2倍
+- 在ETF的股息和拆分旁边添加“资本收益”，并通过`history_metadata`提供元数据，以及一系列价格修复
+有关更改的完整列表，请参见#1238
 
 0.2.0rc2
 --------
-Financials
-- fix financials tables to match website  #1128 #1157
-- lru_cache to optimise web requests  #1147
-Prices
-- improve price repair  #1148
-- fix merging dividends/splits with day/week/monthly prices  #1161
-- fix the Yahoo DST fixes  #1143
-- improve bad/delisted ticker handling  #1140
-Misc
-- fix 'trailingPegRatio'  #1138
-- improve error handling  #1118
+财务
+- 修复财务表格以匹配网站 #1128 #1157
+- lru_cache优化Web请求 #1147
+价格
+- 改进价格修复 #1148
+- 修复将股息/拆分与日/周/月价格合并的问题 #1161
+- 修复Yahoo DST修复 #1143
+- 改进坏/退市股票处理 #1140
+杂项
+- 修复'trailingPegRatio' #1138
+- 改进错误处理 #1118
 
 0.2.0rc1
 --------
-Jumping to 0.2 for this big update. 0.1.* will continue to receive bug-fixes
-- timezone cache performance massively improved. Thanks @fredrik-corneliusson #1113 #1112 #1109 #1105 #1099
-- price repair feature #1110
-- fix merging of dividends/splits with prices #1069 #1086 #1102
-- fix Yahoo returning latest price interval across 2 rows #1070
-- optional: raise errors as exceptions: raise_errors=True #1104
-- add proper unit tests #1069
+为此重大更新跳至0.2。0.1.*将继续接收错误修复
+- 时区缓存性能大幅提升。感谢@fredrik-corneliusson #1113 #1112 #1109 #1105 #1099
+- 价格修复功能 #1110
+- 修复将股息/拆分与价格合并的问题 #1069 #1086 #1102
+- 修复Yahoo在2行中返回最新价格间隔的问题 #1070
+- 可选：将错误作为异常引发：raise_errors=True #1104
+- 添加适当的单元测试 #1069
 
 0.1.81
 ------
-- Fix unhandled tz-cache exception #1107
+- 修复未处理的tz-cache异常 #1107
 
 0.1.80
 ------
-- Fix `download(ignore_tz=True)` for single ticker #1097
-- Fix rare case of error "Cannot infer DST time" #1100
+- 修复单个股票的`download(ignore_tz=True)` #1097
+- 修复罕见的错误“无法推断DST时间” #1100
 
 0.1.79
 ------
-- Fix when Yahoo returns price=NaNs on dividend day
+- 修复Yahoo在股息日返回price=NaNs的问题
 
 0.1.78
 ------
-- Fix download() when different timezones #1085
+- 修复不同时区时的download() #1085
 
 0.1.77
 ------
-- Fix user experience bug #1078
+- 修复用户体验错误 #1078
 
 0.1.75
 ------
-- Fixed datetime-related issues: #1048
-- Add 'keepna' argument #1032
-- Speedup Ticker() creation #1042
-- Improve a bugfix #1033
+- 修复了与日期时间相关的问题：#1048
+- 添加'keepna'参数 #1032
+- 加快Ticker()创建速度 #1042
+- 改进一个错误修复 #1033
 
 0.1.74
 ------
-- Fixed bug introduced in 0.1.73 (sorry :/)
+- 修复了0.1.73中引入的错误（抱歉:/）
 
 0.1.73
 ------
-- Merged several PR that fixed misc issues
+- 合并了几个修复杂项问题的PR
 
 0.1.72
 ------
-- Misc bugfixs
+- 杂项错误修复
 
 0.1.71
 ------
-- Added Tickers(…).news()
-- Return empty DF if YF missing earnings dates
-- Fix EPS % to 0->1
-- Fix timezone handling
-- Fix handling of missing data
-- Clean&format earnings_dates table
-- Add ``.get_earnings_dates()`` to retrieve earnings calendar
-- Added ``.get_earnings_history()`` to fetch earnings data
+- 添加了Tickers(…).news()
+- 如果YF缺少收益日期，则返回空的DF
+- 将EPS %修复为0->1
+- 修复时区处理
+- 修复缺失数据的处理
+- 清理和格式化earnings_dates表
+- 添加``.get_earnings_dates()``以检索收益日历
+- 添加了``.get_earnings_history()``以获取收益数据
 
 0.1.70
 ------
-- Bug fixed - Closes #937
+- 错误修复 - 关闭 #937
 
 0.1.69
 ------
-- Bug fixed - #920
+- 错误修复 - #920
 
 0.1.68
 ------
-- Upgraded requests dependency
-- Removed Python 3.5 support
+- 升级了requests依赖
+- 删除了Python 3.5支持
 
 0.1.67
 ------
-- Added legal disclaimers to make sure people are aware that this library is not affiliated, endorsed, or vetted by Yahoo, Inc.
+- 添加了法律免责声明，以确保人们意识到该库与Yahoo, Inc.无关，也未得到其认可或审核。
 
 0.1.66
 ------
-- Merged PR to allow yfinance to be pickled
+- 合并了允许yfinance被pickle的PR
 
 0.1.65
 ------
-- Merged PRs to fix some bugs
-- Added lookup by ISIN ``utils.get_all_by_isin(...)``, ``utils.get_ticker_by_isin(...)``, ``utils.get_info_by_isin(...)``, ``utils.get_news_by_isin(...)``
-- ``yf.Ticker``, ``yf.Tickers``, and ``yf.download`` will auto-detect ISINs and convert them to tickers
-- Propagating timeout parameter through code, setting request.get(timeout)
-- Adds ``Ticker.analysis`` and ``Ticker.get_analysis(...)``
+- 合并了修复一些错误的PR
+- 添加了按ISIN查找的功能 ``utils.get_all_by_isin(...)``, ``utils.get_ticker_by_isin(...)``, ``utils.get_info_by_isin(...)``, ``utils.get_news_by_isin(...)``
+- ``yf.Ticker``, ``yf.Tickers``, 和 ``yf.download`` 将自动检测ISIN并将其转换为股票代码
+- 在代码中传播timeout参数，设置request.get(timeout)
+- 添加了 ``Ticker.analysis`` 和 ``Ticker.get_analysis(...)``
 
 0.1.64
 ------
-- Merged PRs to fix some bugs
-- Added ``Ticker.stats()`` method
-- Added ``Ticker.news`` property
-- Providing topHoldings for ETFs
-- Replaceed drop duplicate prices with indexes
-- Added pre-market price to ``Ticker.info``
-
+- 合并了修复一些错误的PR
+- 添加了 ``Ticker.stats()`` 方法
+- 添加了 ``Ticker.news`` 属性
+- 为ETF提供topHoldings
+- 将删除重复价格替换为索引
+- 将盘前价格添加到 ``Ticker.info``
 
 0.1.63
 ------
-- Duplicates and missing rows cleanup
+- 重复和缺失行清理
 
 0.1.62
 ------
-- Added UserAgent to all requests (via ```utils.user_agent_headers```)
+- 向所有请求添加了UserAgent（通过```utils.user_agent_headers```）
 
 0.1.61
 ------
-- Switched to using ```query2.finance.yahoo.com```, which used HTTP/1.1
+- 切换到使用```query2.finance.yahoo.com```，它使用HTTP/1.1
 
 0.1.60
 ------
-- Gracefully fail on misc operations (options, auto/back adjustments, etc)
-- Added financial data to ```info()```
-- Using session headers
-- Get price even if open price not available
-- Argument added for silencing error printing
-- Merged PRs to fix some bugs
+- 在杂项操作（期权、自动/后向调整等）上优雅地失败
+- 向```info()```添加了财务数据
+- 使用会话头
+- 即使开盘价不可用也获取价格
+- 添加了用于静默错误打印的参数
+- 合并了修复一些错误的PR
 
 0.1.59
 ------
-- Added custom requests session instance support in holders
+- 在持有者中添加了自定义请求会话实例支持
 
 0.1.58
 ------
-- Allow specifying a custom requests session instance
+- 允许指定自定义请求会话实例
 
 0.1.57
 ------
-- Added Conversion rate hint using 'financialCurrency' property in earnings
-- Add important try+catch statements
-- Fixed issue with 1 hour interval
-- Merged PRs to fix some bugs
-- Fixed issue with special characters in tickers
+- 在收益中使用'financialCurrency'属性添加了转换率提示
+- 添加了重要的try+catch语句
+- 修复了1小时间隔的问题
+- 合并了修复一些错误的PR
+- 修复了股票代码中特殊字符的问题
 
 0.1.56
 ------
-- Updated numpy version
-- Merged PRs to fix some bugs
+- 更新了numpy版本
+- 合并了修复一些错误的PR
 
 0.1.55
 ------
-- Fixed institutional investors and mutual fund holders issue (#459)
-- Fix for UTC timestamps in options chains (#429)
+- 修复了机构投资者和共同基金持有者的问题 (#459)
+- 修复了期权链中的UTC时间戳问题 (#429)
 
 0.1.54
 ------
-- ISIN lookup working with intl. tickers
+- ISIN查找适用于国际股票代码
 
 0.1.53
 ------
-- Added ``Ticker.isin`` + ``Ticker.get_isin(...)``. This is still experimental. Do not rely on it for production.
-- Bug fixed: holders were always returning results for MSFT
+- 添加了 ``Ticker.isin`` + ``Ticker.get_isin(...)``。这仍然是实验性的。不要在生产中依赖它。
+- 错误修复：持有者总是返回MSFT的结果
 
 0.1.52
 ------
-- Improved JSON regex parsing
+- 改进了JSON正则表达式解析
 
 0.1.51
 ------
-- Added holdings data (``Ticker.major_holders`` and ``Ticker.institutional_holders``)
-- Added logo url to ``Ticker.info``
-- Handling different date formats in fundamentals
-- Faster JSON parsing using regex
-- Trying to re-download JSON twice before giving up
-- Using ujson instead of json if installed
-- Fixed (more) ``ticker.info`` issues
-- Misc bugfixes
+- 添加了持股数据 (``Ticker.major_holders`` 和 ``Ticker.institutional_holders``)
+- 向 ``Ticker.info`` 添加了logo url
+- 处理基本面中的不同日期格式
+- 使用正则表达式更快地解析JSON
+- 在放弃之前尝试重新下载JSON两次
+- 如果已安装，则使用ujson代替json
+- 修复了（更多）``ticker.info``问题
+- 杂项错误修复
 
 0.1.50
 ------
-- Fixed ``ticker.info`` issues
-- Handle sustainability index error
-- Added test script based on @GregoryMorse's pull request
+- 修复了 ``ticker.info`` 问题
+- 处理可持续性指数错误
+- 根据@GregoryMorse的拉取请求添加了测试脚本
 
 0.1.49
 ------
-- Fixed ``elementwise comparison`` warning
+- 修复了 ``elementwise comparison`` 警告
 
 0.1.48
 ------
-- Fixed issues related to non-publicly traded tickers (crypto, currency, etc)
+- 修复了与非公开交易股票代码（加密货币、货币等）相关的问题
 
 0.1.47
 ------
-- Fixed options-related bug that was caused by code refactoring
+- 修复了由代码重构引起的与期权相关的错误
 
 0.1.46
 ------
-- Rerwote all fundamental-related methods, which now support quarterly financials, cashflow, balance sheets, and earnings, analysts recommendations, and earnings calendar data
-- Code refactoring
+- 重写了所有与基本面相关的方法，现在支持季度财务、现金流、资产负债表和收益、分析师建议以及收益日历数据
+- 代码重构
 
 0.1.45
 ------
-- Added sustainability data/error handling for ETF/MF (by GregoryMorse)
-- Avoid rounding the values retrieved from Yahoo by default (by aglebov)
-- Added 'rename=True' for the namedtuple (raffieeey)
+- 添加了ETF/MF的可持续性数据/错误处理（由GregoryMorse提供）
+- 默认情况下避免对从Yahoo检索的值进行四舍五入（由aglebov提供）
+- 为namedtuple添加了'rename=True'（raffieeey）
 
 0.1.44
 ------
-- Improved ``Tickers`` module (see https://github.com/ranaroussi/yfinance/issues/86)
-- Misc bugfixes
+- 改进了 ``Tickers`` 模块（参见 https://github.com/ranaroussi/yfinance/issues/86）
+- 杂项错误修复
 
 0.1.43
 ------
-- Bugfixes
+- 错误修复
 
 0.1.42
 ------
-- Fix data realignment when Yahoo returns with missing/malform data
+- 修复当Yahoo返回缺失/格式错误的数据时的数据重新对齐
 
 0.1.41
 ------
-- Added methods for downloading option chain
+- 添加了用于下载期权链的方法
 
 0.1.40
 ------
-- Fixed issue related to threads when downloading many symbols
-- Fix issue relared to missing data
+- 修复了下载许多符号时与线程相关的问题
+- 修复了与缺失数据相关的问题
 
 0.1.39
 ------
-- Added ``Ticker('XXX').financials``, ``Ticker('XXX').balance_sheet``, and ``Ticker('XXX').cashflow``
-- Proxy can be used when downloading actions
+- 添加了 ``Ticker('XXX').financials``, ``Ticker('XXX').balance_sheet``, 和 ``Ticker('XXX').cashflow``
+- 下载操作时可以使用代理
 
 0.1.38
 ------
-- Making sure tickers are always uppercase
-- Added Tickers to ``__all__``
-- Updated readme to reflect current library structure
+- 确保股票代码始终为大写
+- 将Tickers添加到 ``__all__``
+- 更新了readme以反映当前的库结构
 
 0.1.37
 ------
-- Overriding old ``pandas_datareader.data.DataReader`` when calling ``pdr_override()``
-- ``Tickers()`` returns a named tuple of ``Ticker()`` objects
+- 调用 ``pdr_override()`` 时覆盖旧的 ``pandas_datareader.data.DataReader``
+- ``Tickers()`` 返回一个 ``Ticker()`` 对象的命名元组
 
 0.1.36
 ------
-- Package renamed to ``yfinance``
-- Added option to specify proxy server
+- 包重命名为 ``yfinance``
+- 添加了指定代理服务器的选项
 
 0.1.35
 ------
-- Updated requirements
+- 更新了要求
 
 0.1.34
 ------
-- Intercept yahoo "site down" message
-- Better period handling
-- Threading is True by default
+- 拦截yahoo“站点关闭”消息
+- 更好的周期处理
+- 默认情况下线程为True
 
 0.1.33
 ------
-- Better error handling
+- 更好的错误处理
 
 0.1.32
 ------
-- Better error handling
-- Updated min. versions for requirements
+- 更好的错误处理
+- 更新了要求的最低版本
 
 0.1.31
 ------
-- Include ticker in error message if error is raised
+- 如果引发错误，则在错误消息中包含股票代码
 
 0.1.30
 ------
-- Fixed Yahoo!'s 30m bars being returned as 60m/15m
+- 修复了Yahoo的30m柱被返回为60m/15m的问题
 
 0.1.29
 ------
-- Fixed issue with Pandas "DataFrame constructor not properly called!"
-- If ``threads`` is set to True, it will default to number of tickers (max = @ of CPU cores)
+- 修复了Pandas“DataFrame构造函数未正确调用！”的问题
+- 如果 ``threads`` 设置为True，它将默认为股票代码的数量（最大=CPU核心数）
 
 0.1.28
 ------
-- Threading defaults to ``False``
+- 线程默认为 ``False``
 
 0.1.27
 ------
-- Threading is back :)
+- 线程回来了 :)
 
 0.1.26
 ------
-- Fixed weird bug with Yahoo!, which is returning 60m interval when requesting for 30m interval, by requesting 15m interval and resampling the returned data
-- ``Ticker.history()`` auto-adjusts data by default
+- 修复了Yahoo!返回60m间隔而不是请求30m间隔的奇怪错误，方法是请求15m间隔并重新采样返回的数据
+- ``Ticker.history()`` 默认自动调整数据
 
 0.1.21 - 0.1.25
 ------
-- Bugfixs
+- 错误修复
 
 0.1.2
 ------
-- Round prices based on metadata decimals
+- 根据元数据小数位对价格进行四舍五入
 
 0.1.1
 ------
-- Setting Volume colume as np.int64 dtype to avoid integer overflow on Windows
+- 将Volume列设置为np.int64 dtype以避免在Windows上整数溢出
 
 0.1.0
 -------
-- Works with v8 API
-- Introduced Ticker module
-- Complete re-write of the entire code
-- Skipped a bunch of version :)
+- 适用于v8 API
+- 引入了Ticker模块
+- 完全重写了整个代码
+- 跳过了一些版本 :)
 
 0.0.22
 -------
-- Deprecated Panel support
+- 弃用了Panel支持
 
 0.0.21
 -------
-- Code cleanup
+- 代码清理
 
 0.0.20
 -------
-- Fixed issue with progress bar (issue #42)
+- 修复了进度条问题（问题#42）
 
 0.0.19
 -------
-- Misc bugfixes
+- 杂项错误修复
 
 0.0.18
 -------
-- Minor Bugfixes
-- Added deprecation warning for future versions regarding auto-overriding pandas_datareader
+- 小错误修复
+- 为未来版本添加了关于自动覆盖pandas_datareader的弃用警告
 
 0.0.17
 -------
-- Handles duplicate index
+- 处理重复索引
 
 0.0.16
 -------
-- Progress bar bugfix
+- 进度条错误修复
 
 0.0.15
 -------
-- Bugfix (closing issue #11)
+- 错误修复（关闭问题#11）
 
 0.0.14
 -------
-- Added support for Python 2.7
-- Confirming valid data returned before adding it to ``_DFS_``
+- 添加了对Python 2.7的支持
+- 在将数据添加到 ``_DFS_`` 之前确认返回的数据有效
 
 0.0.13
 -------
-- Removed debugging code
+- 删除了调试代码
 
 0.0.12
 -------
-- Minor bug fix (closing #6)
+- 小错误修复（关闭#6）
 
 0.0.11
 -------
-- Downloads ONLY dividend and stock splits data using ``actions='only'``)
+- 仅使用 ``actions='only'`` 下载股息和股票拆分数据）
 
 0.0.10
 -------
-- Downloads dividend and stock splits data (use ``actions=True``)
+- 下载股息和股票拆分数据（使用 ``actions=True``）
 
 0.0.9
 -------
-- Add ``threads`` parameter to ``download()`` (# of threads to use)
+- 向 ``download()`` 添加 ``threads`` 参数（要使用的线程数）
 
 0.0.8
 -------
-- Removed 5 second wait for every failed fetch
-- Reduced TTL for Yahoo!'s cookie
-- Keeps track of failed downloads and tries to re-download all failed downloads one more time before giving up
-- Added progress bar (can be turned off using ``progress=False``)
+- 删除了每次失败获取的5秒等待
+- 减少了Yahoo! cookie的TTL
+- 跟踪失败的下载，并在放弃前再次尝试重新下载所有失败的下载
+- 添加了进度条（可以使用 ``progress=False`` 关闭）
 
 0.0.7
 -------
-- ``pandas_datareader`` is optional (can be called via ``download()`` or via ``pdr.get_data_yahoo()``)
-- Tries to re-fetch Yahoo cookie in case of timeout/error
+- ``pandas_datareader`` 是可选的（可以通过 ``download()`` 或 ``pdr.get_data_yahoo()`` 调用）
+- 在超时/错误的情况下尝试重新获取Yahoo cookie
 
 0.0.6
 -------
-- Forcing index to be of datetime type
+- 强制索引为datetime类型
 
 0.0.5
 -------
-- Works using ``requests`` = no need for Selenium, PyVirtualDisplay, or Chrome Driver
+- 使用 ``requests`` = 无需Selenium、PyVirtualDisplay或Chrome驱动程序
 
 0.0.4
 -------
-- Removed ALL debugging code :)
+- 删除了所有调试代码 :)
 
 0.0.3
 -------
-- Removed debugging code
+- 删除了调试代码
 
 0.0.2
 -------
-- Option to explicitly specify the location of the Chrome driver
+- 明确指定Chrome驱动程序位置的选项
 
 0.0.1
 -------
-- Initial release (alpha)
+- 初始版本（alpha）

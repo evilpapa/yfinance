@@ -12,6 +12,7 @@ from google.protobuf.json_format import MessageToDict
 
 
 class BaseWebSocket:
+    """WebSocket客户端的基类。"""
     def __init__(self, url: str = "wss://streamer.finance.yahoo.com/?version=2", verbose=True):
         self.url = url
         self.verbose = verbose
@@ -21,6 +22,7 @@ class BaseWebSocket:
         self._subscription_interval = 15  # seconds
 
     def _decode_message(self, base64_message: str) -> dict:
+        """解码base64编码的消息。"""
         try:
             decoded_bytes = base64.b64decode(base64_message)
             pricing_data = PricingData()
@@ -38,22 +40,23 @@ class BaseWebSocket:
 
 class AsyncWebSocket(BaseWebSocket):
     """
-    Asynchronous WebSocket client for streaming real time pricing data.
+    用于流式传输实时定价数据的异步WebSocket客户端。
     """
 
     def __init__(self, url: str = "wss://streamer.finance.yahoo.com/?version=2", verbose=True):
         """
-        Initialize the AsyncWebSocket client.
+        初始化AsyncWebSocket客户端。
 
-        Args:
-            url (str): The WebSocket server URL. Defaults to Yahoo Finance's WebSocket URL.
-            verbose (bool): Flag to enable or disable print statements. Defaults to True.
+        参数:
+            url (str): WebSocket服务器URL。默认为Yahoo Finance的WebSocket URL。
+            verbose (bool): 是否启用或禁用打印语句的标志。默认为True。
         """
         super().__init__(url, verbose)
-        self._message_handler = None  # Callable to handle messages
-        self._heartbeat_task = None  # Task to send heartbeat subscribe
+        self._message_handler = None  # 用于处理消息的可调用对象
+        self._heartbeat_task = None  # 用于发送心跳订阅的任务
 
     async def _connect(self):
+        """连接到WebSocket服务器。"""
         try:
             if self._ws is None:
                 self._ws = await async_connect(self.url)
@@ -68,6 +71,7 @@ class AsyncWebSocket(BaseWebSocket):
             raise
 
     async def _periodic_subscribe(self):
+        """定期发送订阅消息以保持连接活动。"""
         while True:
             try:
                 await asyncio.sleep(self._subscription_interval)
@@ -86,10 +90,10 @@ class AsyncWebSocket(BaseWebSocket):
 
     async def subscribe(self, symbols: Union[str, List[str]]):
         """
-        Subscribe to a stock symbol or a list of stock symbols.
+        订阅一个或多个股票代码。
 
-        Args:
-            symbols (Union[str, List[str]]): Stock symbol(s) to subscribe to.
+        参数:
+            symbols (Union[str, List[str]]): 要订阅的股票代码。
         """
         await self._connect()
 
@@ -101,7 +105,6 @@ class AsyncWebSocket(BaseWebSocket):
         message = {"subscribe": list(self._subscriptions)}
         await self._ws.send(json.dumps(message))
 
-        # Start heartbeat subscription task
         if self._heartbeat_task is None:
             self._heartbeat_task = asyncio.create_task(self._periodic_subscribe())
 
@@ -111,10 +114,10 @@ class AsyncWebSocket(BaseWebSocket):
 
     async def unsubscribe(self, symbols: Union[str, List[str]]):
         """
-        Unsubscribe from a stock symbol or a list of stock symbols.
+        取消订阅一个或多个股票代码。
 
-        Args:
-            symbols (Union[str, List[str]]): Stock symbol(s) to unsubscribe from.
+        参数:
+            symbols (Union[str, List[str]]): 要取消订阅的股票代码。
         """
         await self._connect()
 
@@ -132,10 +135,10 @@ class AsyncWebSocket(BaseWebSocket):
 
     async def listen(self, message_handler=None):
         """
-        Start listening to messages from the WebSocket server.
+        开始监听来自WebSocket服务器的消息。
 
-        Args:
-            message_handler (Optional[Callable[[dict], None]]): Optional function to handle received messages.
+        参数:
+            message_handler (Optional[Callable[[dict], None]]): 用于处理接收到的消息的可选函数。
         """
         await self._connect()
         self._message_handler = message_handler
@@ -144,7 +147,6 @@ class AsyncWebSocket(BaseWebSocket):
         if self.verbose:
             print("Listening for messages...")
 
-        # Start heartbeat subscription task
         if self._heartbeat_task is None:
             self._heartbeat_task = asyncio.create_task(self._periodic_subscribe())
 
@@ -180,19 +182,18 @@ class AsyncWebSocket(BaseWebSocket):
                 if self.verbose:
                     print("Error while listening to messages: %s", e)
 
-                # Attempt to reconnect if connection drops
                 self.logger.info("Attempting to reconnect...")
                 if self.verbose:
                     print("Attempting to reconnect...")
-                await asyncio.sleep(3)  # backoff
+                await asyncio.sleep(3)
                 await self._connect()
 
     async def close(self):
-        """Close the WebSocket connection."""
+        """关闭WebSocket连接。"""
         if self._heartbeat_task:
             self._heartbeat_task.cancel()
 
-        if self._ws is not None:  # and not self._ws.closed:
+        if self._ws is not None:
             await self._ws.close()
             self.logger.info("WebSocket connection closed.")
             if self.verbose:
@@ -208,20 +209,21 @@ class AsyncWebSocket(BaseWebSocket):
 
 class WebSocket(BaseWebSocket):
     """
-    Synchronous WebSocket client for streaming real time pricing data.
+    用于流式传输实时定价数据的同步WebSocket客户端。
     """
 
     def __init__(self, url: str = "wss://streamer.finance.yahoo.com/?version=2", verbose=True):
         """
-        Initialize the WebSocket client.
+        初始化WebSocket客户端。
 
-        Args:
-            url (str): The WebSocket server URL. Defaults to Yahoo Finance's WebSocket URL.
-            verbose (bool): Flag to enable or disable print statements. Defaults to True.
+        参数:
+            url (str): WebSocket服务器URL。默认为Yahoo Finance的WebSocket URL。
+            verbose (bool): 是否启用或禁用打印语句的标志。默认为True。
         """
         super().__init__(url, verbose)
 
     def _connect(self):
+        """连接到WebSocket服务器。"""
         try:
             if self._ws is None:
                 self._ws = sync_connect(self.url)
@@ -237,10 +239,10 @@ class WebSocket(BaseWebSocket):
 
     def subscribe(self, symbols: Union[str, List[str]]):
         """
-        Subscribe to a stock symbol or a list of stock symbols.
+        订阅一个或多个股票代码。
 
-        Args:
-            symbols (Union[str, List[str]]): Stock symbol(s) to subscribe to.
+        参数:
+            symbols (Union[str, List[str]]): 要订阅的股票代码。
         """
         self._connect()
 
@@ -258,10 +260,10 @@ class WebSocket(BaseWebSocket):
 
     def unsubscribe(self, symbols: Union[str, List[str]]):
         """
-        Unsubscribe from a stock symbol or a list of stock symbols.
+        取消订阅一个或多个股票代码。
 
-        Args:
-            symbols (Union[str, List[str]]): Stock symbol(s) to unsubscribe from.
+        参数:
+            symbols (Union[str, List[str]]): 要取消订阅的股票代码。
         """
         self._connect()
 
@@ -279,10 +281,10 @@ class WebSocket(BaseWebSocket):
 
     def listen(self, message_handler: Optional[Callable[[dict], None]] = None):
         """
-        Start listening to messages from the WebSocket server.
+        开始监听来自WebSocket服务器的消息。
 
-        Args:
-            message_handler (Optional[Callable[[dict], None]]): Optional function to handle received messages.
+        参数:
+            message_handler (Optional[Callable[[dict], None]]): 用于处理接收到的消息的可选函数。
         """
         self._connect()
 
@@ -320,7 +322,7 @@ class WebSocket(BaseWebSocket):
                 break
 
     def close(self):
-        """Close the WebSocket connection."""
+        """关闭WebSocket连接。"""
         if self._ws is not None:
             self._ws.close()
             self.logger.info("WebSocket connection closed.")

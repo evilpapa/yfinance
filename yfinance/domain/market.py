@@ -6,7 +6,19 @@ from ..const import _QUERY1_URL_, _SENTINEL_
 from ..data import utils, YfData
 
 class Market:
+    """
+    表示一个金融市场，用于获取该市场的摘要和状态信息。
+    """
     def __init__(self, market:'str', session=None, proxy=_SENTINEL_, timeout=30):
+        """
+        初始化Market对象。
+
+        参数:
+            market (str): 市场名称，例如 "us_market"。
+            session (optional): 用于请求的会话。
+            proxy (optional): 代理服务器。
+            timeout (int): 请求超时时间。
+        """
         self.market = market
         self.session = session
         self.timeout = timeout
@@ -22,6 +34,7 @@ class Market:
         self._summary = None
 
     def _fetch_json(self, url, params):
+        """获取并解析JSON数据"""
         data = self._data.cache_get(url=url, params=params, timeout=self.timeout)
         if data is None or "Will be right back" in data.text:
             raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***\n"
@@ -34,14 +47,14 @@ class Market:
             return {}
         
     def _parse_data(self):
-        # Fetch both to ensure they are at the same time
+        """解析市场数据"""
+        # 获取两者以确保它们在同一时间
         if (self._status is not None) and (self._summary is not None):
             return
         
         self._logger.debug(f"{self.market}: Parsing market data")
 
-        # Summary
-
+        # 摘要
         summary_url = f"{_QUERY1_URL_}/v6/finance/quote/marketSummary"
         summary_fields = ["shortName", "regularMarketPrice", "regularMarketChange", "regularMarketChangePercent"]
         summary_params = {
@@ -51,6 +64,7 @@ class Market:
             "market": self.market
         }
 
+        # 状态
         status_url = f"{_QUERY1_URL_}/v6/finance/markettime"
         status_params = {
             "formatted": True,
@@ -71,10 +85,10 @@ class Market:
 
 
         try:
-            # Unpack
+            # 解包
             self._status = self._status['finance']['marketTimes'][0]['marketTime'][0]
             self._status['timezone'] = self._status['timezone'][0]
-            del self._status['time']  # redundant
+            del self._status['time']  # 多余
             try:
                 self._status.update({
                     "open": dt.datetime.fromisoformat(self._status["open"]),
@@ -88,16 +102,14 @@ class Market:
             self._logger.error(f"{self.market}: Failed to parse market status")
             self._logger.debug(f"{type(e)}: {e}")
 
-
-
-
     @property
     def status(self):
+        """获取市场状态"""
         self._parse_data()
         return self._status
 
-
     @property
     def summary(self):
+        """获取市场摘要"""
         self._parse_data()
         return self._summary

@@ -33,14 +33,14 @@ LOOKUP_TYPES = ["all", "equity", "mutualfund", "etf", "index", "future", "curren
 
 class Lookup:
     """
-    Fetches quote (ticker) lookups from Yahoo Finance.
+    从Yahoo Finance获取报价（股票代码）查找。
 
-    :param query: The search query for financial data lookup.
+    :param query: 金融数据查找的搜索查询。
     :type query: str
-    :param session: Custom HTTP session for requests (default None).
-    :param proxy: Proxy settings for requests (default None).
-    :param timeout: Request timeout in seconds (default 30).
-    :param raise_errors: Raise exceptions on error (default True).
+    :param session: 用于请求的自定义HTTP会话（默认为None）。
+    :param proxy: 请求的代理设置（默认为None）。
+    :param timeout: 请求超时（秒）（默认为30）。
+    :param raise_errors: 出错时引发异常（默认为True）。
     """
 
     def __init__(self, query: str, session=None, proxy=_SENTINEL_, timeout=30, raise_errors=True):
@@ -61,6 +61,7 @@ class Lookup:
         self._cache = {}
 
     def _fetch_lookup(self, lookup_type="all", count=25) -> dict:
+        """获取查找结果"""
         cache_key = (lookup_type, count)
         if cache_key in self._cache:
             return self._cache[cache_key]
@@ -90,7 +91,7 @@ class Lookup:
             self._logger.error(f"{self.query}: Failed to retrieve lookup results and received faulty response instead.")
             data = {}
 
-        # Error returned
+        # 返回错误
         if data.get("finance", {}).get("error", {}):
             raise YFException(data.get("finance", {}).get("error", {}))
 
@@ -99,6 +100,7 @@ class Lookup:
 
     @staticmethod
     def _parse_response(response: dict) -> pd.DataFrame:
+        """解析响应"""
         finance = response.get("finance", {})
         result = finance.get("result", [])
         result = result[0] if len(result) > 0 else {}
@@ -109,116 +111,117 @@ class Lookup:
         return df.set_index("symbol")
 
     def _get_data(self, lookup_type: str, count: int = 25) -> pd.DataFrame:
+        """获取数据"""
         return self._parse_response(self._fetch_lookup(lookup_type, count))
 
     def get_all(self, count=25) -> pd.DataFrame:
         """
-        Returns all available financial instruments.
+        返回所有可用的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("all", count)
 
     def get_stock(self, count=25) -> pd.DataFrame:
         """
-        Returns stock related financial instruments.
+        返回与股票相关的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("equity", count)
 
     def get_mutualfund(self, count=25) -> pd.DataFrame:
         """
-        Returns mutual funds related financial instruments.
+        返回与共同基金相关的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("mutualfund", count)
 
     def get_etf(self, count=25) -> pd.DataFrame:
         """
-        Returns ETFs related financial instruments.
+        返回与ETF相关的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("etf", count)
 
     def get_index(self, count=25) -> pd.DataFrame:
         """
-        Returns Indices related financial instruments.
+        返回与指数相关的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("index", count)
 
     def get_future(self, count=25) -> pd.DataFrame:
         """
-        Returns Futures related financial instruments.
+        返回与期货相关的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("future", count)
 
     def get_currency(self, count=25) -> pd.DataFrame:
         """
-        Returns Currencies related financial instruments.
+        返回与货币相关的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("currency", count)
 
     def get_cryptocurrency(self, count=25) -> pd.DataFrame:
         """
-        Returns Cryptocurrencies related financial instruments.
+        返回与加密货币相关的金融工具。
 
-        :param count: The number of results to retrieve.
+        :param count: 要检索的结果数。
         :type count: int
         """
         return self._get_data("cryptocurrency", count)
 
     @property
     def all(self) -> pd.DataFrame:
-        """Returns all available financial instruments."""
+        """返回所有可用的金融工具。"""
         return self._get_data("all")
 
     @property
     def stock(self) -> pd.DataFrame:
-        """Returns stock related financial instruments."""
+        """返回与股票相关的金融工具。"""
         return self._get_data("equity")
 
     @property
     def mutualfund(self) -> pd.DataFrame:
-        """Returns mutual funds related financial instruments."""
+        """返回与共同基金相关的金融工具。"""
         return self._get_data("mutualfund")
 
     @property
     def etf(self) -> pd.DataFrame:
-        """Returns ETFs related financial instruments."""
+        """返回与ETF相关的金融工具。"""
         return self._get_data("etf")
 
     @property
     def index(self) -> pd.DataFrame:
-        """Returns Indices related financial instruments."""
+        """返回与指数相关的金融工具。"""
         return self._get_data("index")
 
     @property
     def future(self) -> pd.DataFrame:
-        """Returns Futures related financial instruments."""
+        """返回与期货相关的金融工具。"""
         return self._get_data("future")
 
     @property
     def currency(self) -> pd.DataFrame:
-        """Returns Currencies related financial instruments."""
+        """返回与货币相关的金融工具。"""
         return self._get_data("currency")
 
     @property
     def cryptocurrency(self) -> pd.DataFrame:
-        """Returns Cryptocurrencies related financial instruments."""
+        """返回与加密货币相关的金融工具。"""
         return self._get_data("cryptocurrency")

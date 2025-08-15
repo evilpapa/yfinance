@@ -17,8 +17,8 @@ cache_maxsize = 64
 
 def lru_cache_freezeargs(func):
     """
-    Decorator transforms mutable dictionary and list arguments into immutable types
-    Needed so lru_cache can cache method calls what has dict or list arguments.
+    装饰器，将可变的字典和列表参数转换为不可变类型
+    这样lru_cache就可以缓存那些带有字典或列表参数的方法调用。
     """
 
     @functools.wraps(func)
@@ -29,8 +29,7 @@ def lru_cache_freezeargs(func):
         kwargs = {k: tuple(v) if isinstance(v, list) else v for k, v in kwargs.items()}
         return func(*args, **kwargs)
 
-    # copy over the lru_cache extra methods to this wrapper to be able to access them
-    # after this decorator has been applied
+    # 将lru_cache的额外方法复制到这个包装器中，以便在应用此装饰器后可以访问它们
     wrapped.cache_info = func.cache_info
     wrapped.cache_clear = func.cache_clear
     return wrapped
@@ -38,7 +37,7 @@ def lru_cache_freezeargs(func):
 
 class SingletonMeta(type):
     """
-    Metaclass that creates a Singleton instance.
+    创建单例实例的元类。
     """
     _instances = {}
     _lock = threading.Lock()
@@ -49,7 +48,7 @@ class SingletonMeta(type):
                 instance = super().__call__(*args, **kwargs)
                 cls._instances[cls] = instance
             else:
-                # Update the existing instance
+                # 更新现有实例
                 if 'session' in kwargs or (args and len(args) > 0):
                     session = kwargs.get('session') if 'session' in kwargs else args[0]
                     cls._instances[cls]._set_session(session)
@@ -61,17 +60,17 @@ class SingletonMeta(type):
 
 class YfData(metaclass=SingletonMeta):
     """
-    Have one place to retrieve data from Yahoo API in order to ease caching and speed up operations.
-    Singleton means one session one cookie shared by all threads.
+    这个类用于从Yahoo API检索数据，以便于缓存和加速操作。
+    Singleton模式意味着所有线程共享一个会话和一个cookie。
     """
 
     def __init__(self, session=None, proxy=None):
         self._crumb = None
         self._cookie = None
 
-        # Default to using 'basic' strategy
+        # 默认使用 'basic' 策略
         self._cookie_strategy = 'basic'
-        # If it fails, then fallback method is 'csrf'
+        # 如果失败，则回退到 'csrf' 策略
         # self._cookie_strategy = 'csrf'
 
         self._cookie_lock = threading.Lock()
@@ -81,20 +80,21 @@ class YfData(metaclass=SingletonMeta):
         self._set_proxy(proxy)
 
     def _set_session(self, session):
+        """设置会话对象"""
         if session is None:
             return
 
         try:
             session.cache
         except AttributeError:
-            # Not caching
+            # 不缓存
             self._session_is_caching = False
         else:
-            # Is caching. This is annoying.
-            # Can't simply use a non-caching session to fetch cookie & crumb,
-            # because then the caching-session won't have cookie.
+            # 正在缓存。这很烦人。
+            # 不能简单地使用非缓存会话来获取cookie和crumb，
+            # 因为那样缓存会话就没有cookie了。
             self._session_is_caching = True
-            # But since switch to curl_cffi, can't use requests_cache with it.
+            # 但自从切换到curl_cffi后，就不能和requests_cache一起使用了。
             raise YFDataException("request_cache sessions don't work with curl_cffi, which is necessary now for Yahoo API. Solution: stop setting session, let YF handle.")
 
         if not isinstance(session, requests.session.Session):
@@ -106,6 +106,7 @@ class YfData(metaclass=SingletonMeta):
                 self._session.proxies = self._proxy
 
     def _set_proxy(self, proxy=None):
+        """设置代理"""
         with self._cookie_lock:
             if proxy is not None:
                 proxy = {'http': proxy, 'https': proxy} if isinstance(proxy, str) else proxy
@@ -115,6 +116,7 @@ class YfData(metaclass=SingletonMeta):
             self._session.proxies = proxy
 
     def _set_cookie_strategy(self, strategy, have_lock=False):
+        """设置cookie获取策略"""
         if strategy == self._cookie_strategy:
             return
         if not have_lock:
@@ -139,6 +141,7 @@ class YfData(metaclass=SingletonMeta):
 
     @utils.log_indent_decorator
     def _save_cookie_curlCffi(self):
+        """保存curlCffi的cookie"""
         if self._session is None:
             return False
         cookies = self._session.cookies.jar._cookies
@@ -146,7 +149,7 @@ class YfData(metaclass=SingletonMeta):
             return False
         yh_domains = [k for k in cookies.keys() if 'yahoo' in k]
         if len(yh_domains) > 1:
-            # Possible when cookie fetched with CSRF method. Discard consent cookie.
+            # 当使用CSRF方法获取cookie时可能发生。丢弃同意cookie。
             yh_domains = [k for k in yh_domains if 'consent' not in k]
         if len(yh_domains) > 1:
             utils.get_yf_logger().debug(f'Multiple Yahoo cookies, not sure which to cache: {yh_domains}')
@@ -160,6 +163,7 @@ class YfData(metaclass=SingletonMeta):
 
     @utils.log_indent_decorator
     def _load_cookie_curlCffi(self):
+        """加载curlCffi的cookie"""
         if self._session is None:
             return False
         cookie_dict = cache.get_cookie_cache().lookup('curlCffi')
@@ -170,7 +174,7 @@ class YfData(metaclass=SingletonMeta):
         cookie = cookies[domain]['/']['A3']
         expiry_ts = cookie.expires
         if expiry_ts > 2e9:
-            # convert ms to s
+            # 将毫秒转换为秒
             expiry_ts //= 1e3
         expiry_dt = datetime.datetime.fromtimestamp(expiry_ts, tz=datetime.timezone.utc)
         expired = expiry_dt < datetime.datetime.now(datetime.timezone.utc)
@@ -183,6 +187,7 @@ class YfData(metaclass=SingletonMeta):
 
     @utils.log_indent_decorator
     def _get_cookie_basic(self, timeout=30):
+        """使用基本策略获取cookie"""
         if self._cookie is not None:
             utils.get_yf_logger().debug('reusing cookie')
             return True
@@ -190,28 +195,26 @@ class YfData(metaclass=SingletonMeta):
             utils.get_yf_logger().debug('reusing persistent cookie')
             return True
 
-        # To avoid infinite recursion, do NOT use self.get()
-        # - 'allow_redirects' copied from @psychoz971 solution - does it help USA?
         try:
             self._session.get(
                 url='https://fc.yahoo.com',
                 timeout=timeout,
                 allow_redirects=True)
         except requests.exceptions.DNSError:
-            # Possible because url on some privacy/ad blocklists
+            # 可能是因为URL在某些隐私/广告拦截列表中
             return False
         self._save_cookie_curlCffi()
         return True
 
     @utils.log_indent_decorator
     def _get_crumb_basic(self, timeout=30):
+        """使用基本策略获取crumb"""
         if self._crumb is not None:
             utils.get_yf_logger().debug('reusing crumb')
             return self._crumb
 
         if not self._get_cookie_basic():
             return None
-        # - 'allow_redirects' copied from @psychoz971 solution - does it help USA?
         get_args = {
             'url': "https://query1.finance.yahoo.com/v1/test/getcrumb",
             'timeout': timeout,
@@ -236,12 +239,14 @@ class YfData(metaclass=SingletonMeta):
 
     @utils.log_indent_decorator
     def _get_cookie_and_crumb_basic(self, timeout):
+        """使用基本策略获取cookie和crumb"""
         if not self._get_cookie_basic(timeout):
             return None
         return self._get_crumb_basic(timeout)
 
     @utils.log_indent_decorator
     def _get_cookie_csrf(self, timeout):
+        """使用CSRF策略获取cookie"""
         if self._cookie is not None:
             utils.get_yf_logger().debug('reusing cookie')
             return True
@@ -262,7 +267,6 @@ class YfData(metaclass=SingletonMeta):
             else:
                 response = self._session.get(**get_args)
         except requests.exceptions.ChunkedEncodingError:
-            # No idea why happens, but handle nicely so can switch to other cookie method.
             utils.get_yf_logger().debug('_get_cookie_csrf() encountering requests.exceptions.ChunkedEncodingError, aborting')
             return False
 
@@ -303,7 +307,6 @@ class YfData(metaclass=SingletonMeta):
                 self._session.post(**post_args)
                 self._session.get(**get_args)
         except requests.exceptions.ChunkedEncodingError:
-            # No idea why happens, but handle nicely so can switch to other cookie method.
             utils.get_yf_logger().debug('_get_cookie_csrf() encountering requests.exceptions.ChunkedEncodingError, aborting')
         self._cookie = True
         self._save_cookie_curlCffi()
@@ -311,14 +314,13 @@ class YfData(metaclass=SingletonMeta):
 
     @utils.log_indent_decorator
     def _get_crumb_csrf(self, timeout=30):
-        # Credit goes to @bot-unit #1729
+        """使用CSRF策略获取crumb"""
 
         if self._crumb is not None:
             utils.get_yf_logger().debug('reusing crumb')
             return self._crumb
 
         if not self._get_cookie_csrf(timeout):
-            # This cookie stored in session
             return None
 
         get_args = {
@@ -344,6 +346,7 @@ class YfData(metaclass=SingletonMeta):
 
     @utils.log_indent_decorator
     def _get_cookie_and_crumb(self, timeout=30):
+        """获取cookie和crumb"""
         crumb, strategy = None, None
 
         utils.get_yf_logger().debug(f"cookie_mode = '{self._cookie_strategy}'")
@@ -352,14 +355,11 @@ class YfData(metaclass=SingletonMeta):
             if self._cookie_strategy == 'csrf':
                 crumb = self._get_crumb_csrf()
                 if crumb is None:
-                    # Fail
                     self._set_cookie_strategy('basic', have_lock=True)
                     crumb = self._get_cookie_and_crumb_basic(timeout)
             else:
-                # Fallback strategy
                 crumb = self._get_cookie_and_crumb_basic(timeout)
                 if crumb is None:
-                    # Fail
                     self._set_cookie_strategy('csrf', have_lock=True)
                     crumb = self._get_crumb_csrf()
             strategy = self._cookie_strategy
@@ -367,16 +367,17 @@ class YfData(metaclass=SingletonMeta):
 
     @utils.log_indent_decorator
     def get(self, url, params=None, timeout=30):
+        """发送GET请求"""
         return self._make_request(url, request_method = self._session.get, params=params, timeout=timeout)
 
     @utils.log_indent_decorator
     def post(self, url, body, params=None, timeout=30):
+        """发送POST请求"""
         return self._make_request(url, request_method = self._session.post, body=body, params=params, timeout=timeout)
 
     @utils.log_indent_decorator
     def _make_request(self, url, request_method, body=None, params=None, timeout=30):
-        # Important: treat input arguments as immutable.
-
+        """构造并发送请求"""
         if len(url) > 200:
             utils.get_yf_logger().debug(f'url={url[:200]}...')
         else:
@@ -406,7 +407,7 @@ class YfData(metaclass=SingletonMeta):
         response = request_method(**request_args)
         utils.get_yf_logger().debug(f'response code={response.status_code}')
         if response.status_code >= 400:
-            # Retry with other cookie strategy
+            # 使用其他cookie策略重试
             if strategy == 'basic':
                 self._set_cookie_strategy('csrf')
             else:
@@ -416,7 +417,6 @@ class YfData(metaclass=SingletonMeta):
             response = request_method(**request_args)
             utils.get_yf_logger().debug(f'response code={response.status_code}')
 
-            # Raise exception if rate limited
             if response.status_code == 429:
                 raise YFRateLimitError()
 
@@ -425,9 +425,11 @@ class YfData(metaclass=SingletonMeta):
     @lru_cache_freezeargs
     @lru_cache(maxsize=cache_maxsize)
     def cache_get(self, url, params=None, timeout=30):
+        """缓存GET请求"""
         return self.get(url, params, timeout)
 
     def get_raw_json(self, url, params=None, timeout=30):
+        """获取原始JSON数据"""
         utils.get_yf_logger().debug(f'get_raw_json(): {url}')
         response = self.get(url, params=params, timeout=timeout)
         response.raise_for_status()

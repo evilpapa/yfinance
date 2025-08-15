@@ -19,8 +19,13 @@
 # limitations under the License.
 #
 
+# _DFS: 存储下载的DataFrame的字典
 _DFS = {}
+# _PROGRESS_BAR: 进度条对象
 _PROGRESS_BAR = None
+# _ERRORS: 存储下载错误的字典
 _ERRORS = {}
+# _TRACEBACKS: 存储错误的追溯信息的字典
 _TRACEBACKS = {}
+# _ISINS: 存储ISIN码与股票代码的映射
 _ISINS = {}

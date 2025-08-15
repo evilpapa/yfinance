@@ -30,11 +30,21 @@ from .const import _SENTINEL_
 
 
 class Tickers:
+    """
+    Tickers类，用于同时处理多个股票代码。
+    """
 
     def __repr__(self):
         return f"yfinance.Tickers object <{','.join(self.symbols)}>"
 
     def __init__(self, tickers, session=None):
+        """
+        初始化Tickers对象。
+
+        参数:
+            tickers (list or str): 股票代码的列表或以空格/逗号分隔的字符串。
+            session (optional): 用于请求的会话。
+        """
         tickers = tickers if isinstance(
             tickers, list) else tickers.replace(',', ' ').split()
         self.symbols = [ticker.upper() for ticker in tickers]
@@ -45,17 +55,15 @@ class Tickers:
         self._message_handler = None
         self.ws = None
 
-        # self.tickers = _namedtuple(
-        #     "Tickers", ticker_objects.keys(), rename=True
-        # )(*ticker_objects.values())
-
     def history(self, period="1mo", interval="1d",
                 start=None, end=None, prepost=False,
                 actions=True, auto_adjust=True, repair=False,
                 proxy=_SENTINEL_,
                 threads=True, group_by='column', progress=True,
                 timeout=10, **kwargs):
-
+        """
+        获取多个股票代码的历史市场数据。
+        """
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -75,7 +83,10 @@ class Tickers:
                  proxy=_SENTINEL_,
                  threads=True, group_by='column', progress=True,
                  timeout=10, **kwargs):
-
+        """
+        下载多个股票代码的历史市场数据。
+        这是对multi.download的包装。
+        """
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -105,9 +116,11 @@ class Tickers:
         return data
 
     def news(self):
+        """获取多个股票代码的新闻。"""
         return {ticker: [item for item in Ticker(ticker).news] for ticker in self.symbols}
 
     def live(self, message_handler=None, verbose=True):
+        """启动多个股票代码的实时数据流。"""
         self._message_handler = message_handler
 
         self.ws = WebSocket(verbose=verbose)

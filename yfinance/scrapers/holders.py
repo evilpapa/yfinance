@@ -10,9 +10,20 @@ from yfinance.exceptions import YFDataException
 _QUOTE_SUMMARY_URL_ = f"{_BASE_URL_}/v10/finance/quoteSummary"
 
 class Holders:
+    """
+    这个类用于抓取和解析公司的股东数据，包括主要股东、机构股东、共同基金股东以及内部人士交易。
+    """
     _SCRAPE_URL_ = 'https://finance.yahoo.com/quote'
 
     def __init__(self, data: YfData, symbol: str, proxy=_SENTINEL_):
+        """
+        初始化Holders对象。
+
+        参数:
+            data (YfData): 用于数据获取的YfData对象。
+            symbol (str): 股票代码。
+            proxy (optional): 代理服务器。
+        """
         self._data = data
         self._symbol = symbol
         if proxy is not _SENTINEL_:
@@ -30,41 +41,48 @@ class Holders:
 
     @property
     def major(self) -> pd.DataFrame:
+        """主要股东"""
         if self._major is None:
             self._fetch_and_parse()
         return self._major
 
     @property
     def institutional(self) -> pd.DataFrame:
+        """机构股东"""
         if self._institutional is None:
             self._fetch_and_parse()
         return self._institutional
 
     @property
     def mutualfund(self) -> pd.DataFrame:
+        """共同基金股东"""
         if self._mutualfund is None:
             self._fetch_and_parse()
         return self._mutualfund
 
     @property
     def insider_transactions(self) -> pd.DataFrame:
+        """内部人士交易"""
         if self._insider_transactions is None:
             self._fetch_and_parse()
         return self._insider_transactions
 
     @property
     def insider_purchases(self) -> pd.DataFrame:
+        """内部人士购买"""
         if self._insider_purchases is None:
             self._fetch_and_parse()
         return self._insider_purchases
 
     @property
     def insider_roster(self) -> pd.DataFrame:
+        """内部人士名册"""
         if self._insider_roster is None:
             self._fetch_and_parse()
         return self._insider_roster
 
     def _fetch(self):
+        """获取数据"""
         modules = ','.join(
             ["institutionOwnership", "fundOwnership", "majorDirectHolders", "majorHoldersBreakdown", "insiderTransactions", "insiderHolders", "netSharePurchaseActivity"])
         params_dict = {"modules": modules, "corsDomain": "finance.yahoo.com", "formatted": "false"}
@@ -72,6 +90,7 @@ class Holders:
         return result
 
     def _fetch_and_parse(self):
+        """获取并解析数据"""
         try:
             result = self._fetch()
         except curl_cffi.requests.exceptions.HTTPError as e:
@@ -89,10 +108,8 @@ class Holders:
 
         try:
             data = result["quoteSummary"]["result"][0]
-            # parse "institutionOwnership", "fundOwnership", "majorDirectHolders", "majorHoldersBreakdown", "insiderTransactions", "insiderHolders", "netSharePurchaseActivity"
             self._parse_institution_ownership(data.get("institutionOwnership", {}))
             self._parse_fund_ownership(data.get("fundOwnership", {}))
-            # self._parse_major_direct_holders(data.get("majorDirectHolders", {}))  # need more data to investigate
             self._parse_major_holders_breakdown(data.get("majorHoldersBreakdown", {}))
             self._parse_insider_transactions(data.get("insiderTransactions", {}))
             self._parse_insider_holders(data.get("insiderHolders", {}))
@@ -102,11 +119,13 @@ class Holders:
 
     @staticmethod
     def _parse_raw_values(data):
+        """解析原始值"""
         if isinstance(data, dict) and "raw" in data:
             return data["raw"]
         return data
 
     def _parse_institution_ownership(self, data):
+        """解析机构所有权"""
         holders = data.get("ownershipList", {})
         for owner in holders:
             for k, v in owner.items():
@@ -115,10 +134,11 @@ class Holders:
         df = pd.DataFrame(holders)
         if not df.empty:
             df["reportDate"] = pd.to_datetime(df["reportDate"], unit="s")
-            df.rename(columns={"reportDate": "Date Reported", "organization": "Holder", "position": "Shares", "value": "Value"}, inplace=True)  # "pctHeld": "% Out"
+            df.rename(columns={"reportDate": "Date Reported", "organization": "Holder", "position": "Shares", "value": "Value"}, inplace=True)
         self._institutional = df
 
     def _parse_fund_ownership(self, data):
+        """解析基金所有权"""
         holders = data.get("ownershipList", {})
         for owner in holders:
             for k, v in owner.items():
@@ -131,6 +151,7 @@ class Holders:
         self._mutualfund = df
 
     def _parse_major_direct_holders(self, data):
+        """解析主要直接持有人"""
         holders = data.get("holders", {})
         for owner in holders:
             for k, v in owner.items():
@@ -143,6 +164,7 @@ class Holders:
         self._major_direct_holders = df
 
     def _parse_major_holders_breakdown(self, data):
+        """解析主要持有人明细"""
         if "maxAge" in data:
             del data["maxAge"]
         df = pd.DataFrame.from_dict(data, orient="index")
@@ -152,6 +174,7 @@ class Holders:
         self._major = df
 
     def _parse_insider_transactions(self, data):
+        """解析内部人士交易"""
         holders = data.get("transactions", {})
         for owner in holders:
             for k, v in owner.items():
@@ -169,11 +192,12 @@ class Holders:
                 "transactionText": "Text",
                 "shares": "Shares",
                 "value": "Value",
-                "ownership": "Ownership"  # ownership flag, direct or institutional
+                "ownership": "Ownership"
             }, inplace=True)
         self._insider_transactions = df
 
     def _parse_insider_holders(self, data):
+        """解析内部持有人"""
         holders = data.get("holders", {})
         for owner in holders:
             for k, v in owner.items():
@@ -206,6 +230,7 @@ class Holders:
         self._insider_roster = df
 
     def _parse_net_share_purchase_activity(self, data):
+        """解析净购股活动"""
         df = pd.DataFrame(
             {
                 "Insider Purchases Last " + data.get("period", ""): [

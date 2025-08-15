@@ -9,8 +9,19 @@ from yfinance.exceptions import YFException
 from yfinance.scrapers.quote import _QUOTE_SUMMARY_URL_
 
 class Analysis:
+    """
+    这个类用于从Yahoo Finance抓取和解析分析师的建议、盈利预测等与分析相关的数据。
+    """
 
     def __init__(self, data: YfData, symbol: str, proxy=_SENTINEL_):
+        """
+        初始化Analysis对象。
+
+        参数:
+            data (YfData): 用于数据获取的YfData对象。
+            symbol (str): 股票代码。
+            proxy (optional): 代理服务器。
+        """
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             data._set_proxy(proxy)
@@ -18,9 +29,6 @@ class Analysis:
         self._data = data
         self._symbol = symbol
 
-        # In quoteSummary the 'earningsTrend' module contains most of the data below.
-        # The format of data is not optimal so each function will process it's part of the data.
-        # This variable works as a cache.
         self._earnings_trend = None
 
         self._analyst_price_targets = None
@@ -32,6 +40,7 @@ class Analysis:
         self._growth_estimates = None
 
     def _get_periodic_df(self, key) -> pd.DataFrame:
+        """获取周期性的DataFrame"""
         if self._earnings_trend is None:
             self._fetch_earnings_trend()
 
@@ -49,6 +58,7 @@ class Analysis:
 
     @property
     def earnings_estimate(self) -> pd.DataFrame:
+        """盈利预测"""
         if self._earnings_estimate is not None:
             return self._earnings_estimate
         self._earnings_estimate = self._get_periodic_df('earningsEstimate')
@@ -56,6 +66,7 @@ class Analysis:
 
     @property
     def revenue_estimate(self) -> pd.DataFrame:
+        """收入预测"""
         if self._revenue_estimate is not None:
             return self._revenue_estimate
         self._revenue_estimate = self._get_periodic_df('revenueEstimate')
@@ -63,6 +74,7 @@ class Analysis:
 
     @property
     def eps_trend(self) -> pd.DataFrame:
+        """每股收益趋势"""
         if self._eps_trend is not None:
             return self._eps_trend
         self._eps_trend = self._get_periodic_df('epsTrend')
@@ -70,6 +82,7 @@ class Analysis:
 
     @property
     def eps_revisions(self) -> pd.DataFrame:
+        """每股收益修正"""
         if self._eps_revisions is not None:
             return self._eps_revisions
         self._eps_revisions = self._get_periodic_df('epsRevisions')
@@ -77,6 +90,7 @@ class Analysis:
 
     @property
     def analyst_price_targets(self) -> dict:
+        """分析师目标价"""
         if self._analyst_price_targets is not None:
             return self._analyst_price_targets
 
@@ -100,6 +114,7 @@ class Analysis:
 
     @property
     def earnings_history(self) -> pd.DataFrame:
+        """盈利历史"""
         if self._earnings_history is not None:
             return self._earnings_history
 
@@ -133,6 +148,7 @@ class Analysis:
 
     @property
     def growth_estimates(self) -> pd.DataFrame:
+        """增长预测"""
         if self._growth_estimates is not None:
             return self._growth_estimates
 
@@ -168,8 +184,8 @@ class Analysis:
         self._growth_estimates = pd.DataFrame(data).set_index('period').dropna(how='all')
         return self._growth_estimates
 
-    # modified version from quote.py
     def _fetch(self, modules: list):
+        """获取数据"""
         if not isinstance(modules, list):
             raise YFException("Should provide a list of modules, see available modules using `valid_modules`")
 
@@ -185,6 +201,7 @@ class Analysis:
         return result
 
     def _fetch_earnings_trend(self) -> None:
+        """获取盈利趋势"""
         try:
             data = self._fetch(['earningsTrend'])
             self._earnings_trend = data['quoteSummary']['result'][0]['earningsTrend']['trend']

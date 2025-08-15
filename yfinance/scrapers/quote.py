@@ -24,8 +24,10 @@ _QUOTE_SUMMARY_URL_ = f"{_BASE_URL_}/v10/finance/quoteSummary"
 
 
 class FastInfo:
-    # Contain small subset of info[] items that can be fetched faster elsewhere.
-    # Imitates a dict.
+    """
+    包含一小部分可以更快获取的info[]项目。
+    模仿字典。
+    """
     def __init__(self, tickerBaseObject, proxy=_SENTINEL_):
         self._tkr = tickerBaseObject
         if proxy is not _SENTINEL_:
@@ -64,9 +66,6 @@ class FastInfo:
         self._10d_avg_vol = None
         self._3mo_avg_vol = None
 
-        # attrs = utils.attributes(self)
-        # self.keys = attrs.keys()
-        # utils.attributes is calling each method, bad! Have to hardcode
         _properties = ["currency", "quote_type", "exchange", "timezone"]
         _properties += ["shares", "market_cap"]
         _properties += ["last_price", "previous_close", "open", "day_high", "day_low"]
@@ -75,10 +74,7 @@ class FastInfo:
         _properties += ["fifty_day_average", "two_hundred_day_average", "ten_day_average_volume", "three_month_average_volume"]
         _properties += ["year_high", "year_low", "year_change"]
 
-        # Because released before fixing key case, need to officially support
-        # camel-case but also secretly support snake-case
         base_keys = [k for k in _properties if '_' not in k]
-
         sc_keys = [k for k in _properties if '_' in k]
 
         self._sc_to_cc_key = {k: utils.snake_case_2_camelCase(k) for k in sc_keys}
@@ -87,7 +83,6 @@ class FastInfo:
         self._public_keys = sorted(base_keys + list(self._sc_to_cc_key.values()))
         self._keys = sorted(self._public_keys + sc_keys)
 
-    # dict imitation:
     def keys(self):
         return self._public_keys
 
@@ -150,7 +145,6 @@ class FastInfo:
         d1 = dnow
         d0 = (d1 + datetime.timedelta(days=1)) - utils._interval_to_timedelta("1y")
         if fullDaysOnly and self._exchange_open_now():
-            # Exclude today
             d1 -= utils._interval_to_timedelta("1d")
         return self._prices_1y.loc[str(d0):str(d1)]
 
@@ -176,23 +170,10 @@ class FastInfo:
         t = pd.Timestamp.utcnow()
         self._get_exchange_metadata()
 
-        # if self._today_open is None and self._today_close is None:
-        #     r = False
-        # else:
-        #     r = self._today_open <= t and t < self._today_close
-
-        # if self._today_midnight is None:
-        #     r = False
-        # elif self._today_midnight.date() > t.tz_convert(self.timezone).date():
-        #     r = False
-        # else:
-        #     r = t < self._today_midnight
-
         last_day_cutoff = self._get_1y_prices().index[-1] + datetime.timedelta(days=1)
         last_day_cutoff += datetime.timedelta(minutes=20)
         r = t < last_day_cutoff
 
-        # print("_exchange_open_now() returning", r)
         return r
 
     @property
@@ -235,9 +216,6 @@ class FastInfo:
             return self._shares
 
         shares = self._tkr.get_shares_full(start=pd.Timestamp.utcnow().date()-pd.Timedelta(days=548))
-        # if shares is None:
-        #     # Requesting 18 months failed, so fallback to shares which should include last year
-        #     shares = self._tkr.get_shares()
         if shares is not None:
             if isinstance(shares, pd.DataFrame):
                 shares = shares[shares.columns[0]]
@@ -272,14 +250,11 @@ class FastInfo:
         else:
             prices = prices[["Close"]].groupby(prices.index.date).last()
             if prices.shape[0] < 2:
-                # Very few symbols have previousClose despite no
-                # no trading data e.g. 'QCSTIX'.
                 fail = True
             else:
                 self._prev_close = float(prices["Close"].iloc[-2])
         if fail:
-            # Fallback to original info[] if available.
-            self._tkr.info  # trigger fetch
+            self._tkr.info
             k = "previousClose"
             if self._tkr._quote._retired_info is not None and k in self._tkr._quote._retired_info:
                 self._prev_close = self._tkr._quote._retired_info[k]
@@ -291,15 +266,10 @@ class FastInfo:
             return self._reg_prev_close
         prices = self._get_1y_prices()
         if prices.shape[0] == 1:
-            # Tiny % of tickers don't return daily history before last trading day,
-            # so backup option is hourly history:
             prices = self._get_1wk_1h_reg_prices()
             prices = prices[["Close"]].groupby(prices.index.date).last()
         if prices.shape[0] < 2:
-            # Very few symbols have regularMarketPreviousClose despite no
-            # no trading data. E.g. 'QCSTIX'.
-            # So fallback to original info[] if available.
-            self._tkr.info  # trigger fetch
+            self._tkr.info
             k = "regularMarketPreviousClose"
             if self._tkr._quote._retired_info is not None and k in self._tkr._quote._retired_info:
                 self._reg_prev_close = self._tkr._quote._retired_info[k]
@@ -473,9 +443,6 @@ class FastInfo:
                 raise
 
         if shares is None:
-            # Very few symbols have marketCap despite no share count.
-            # E.g. 'BTC-USD'
-            # So fallback to original info[] if available.
             self._tkr.info
             k = "marketCap"
             if self._tkr._quote._retired_info is not None and k in self._tkr._quote._retired_info:
@@ -486,6 +453,9 @@ class FastInfo:
 
 
 class Quote:
+    """
+    这个类用于抓取和解析来自Yahoo Finance的报价相关数据。
+    """
     def __init__(self, data: YfData, symbol: str, proxy=_SENTINEL_):
         self._data = data
         self._symbol = symbol
@@ -507,6 +477,7 @@ class Quote:
 
     @property
     def info(self) -> dict:
+        """公司信息"""
         if self._info is None:
             self._fetch_info()
             self._fetch_complementary()
@@ -515,6 +486,7 @@ class Quote:
 
     @property
     def sustainability(self) -> pd.DataFrame:
+        """可持续性"""
         if self._sustainability is None:
             result = self._fetch(modules=['esgScores'])
             if result is None:
@@ -529,6 +501,7 @@ class Quote:
 
     @property
     def recommendations(self) -> pd.DataFrame:
+        """分析师建议"""
         if self._recommendations is None:
             result = self._fetch(modules=['recommendationTrend'])
             if result is None:
@@ -543,6 +516,7 @@ class Quote:
 
     @property
     def upgrades_downgrades(self) -> pd.DataFrame:
+        """评级升降级"""
         if self._upgrades_downgrades is None:
             result = self._fetch(modules=['upgradeDowngradeHistory'])
             if result is None:
@@ -563,12 +537,14 @@ class Quote:
 
     @property
     def calendar(self) -> dict:
+        """日历事件"""
         if self._calendar is None:
             self._fetch_calendar()
         return self._calendar
 
     @property
     def sec_filings(self) -> dict:
+        """SEC文件"""
         if self._sec_filings is None:
             f = self._fetch_sec_filings()
             self._sec_filings = {} if f is None else f
@@ -579,6 +555,7 @@ class Quote:
         return quote_summary_valid_modules
 
     def _fetch(self, modules: list):
+        """获取数据"""
         if not isinstance(modules, list):
             raise YFException("Should provide a list of modules, see available modules using `valid_modules`")
 
@@ -594,6 +571,7 @@ class Quote:
         return result
 
     def _fetch_additional_info(self):
+        """获取附加信息"""
         params_dict = {"symbols": self._symbol, "formatted": "false"}
         try:
             result = self._data.get_raw_json(f"{_QUERY1_URL_}/v7/finance/quote?", params=params_dict)
@@ -603,6 +581,7 @@ class Quote:
         return result
 
     def _fetch_info(self):
+        """获取信息"""
         if self._already_fetched:
             return
         self._already_fetched = True
@@ -626,12 +605,8 @@ class Quote:
                 if query_info:
                     query1_info.update(query_info)
 
-        # Normalize and flatten nested dictionaries while converting maxAge from days (1) to seconds (86400).
-        # This handles Yahoo Finance API inconsistency where maxAge is sometimes expressed in days instead of seconds.
         processed_info = {}
         for k, v in query1_info.items():
-
-            # Handle nested dictionary
             if isinstance(v, dict):
                 for k1, v1 in v.items():
                     if v1 is not None:
@@ -641,8 +616,6 @@ class Quote:
                 processed_info[k] = v
 
         query1_info = processed_info
-
-        # recursively format but only because of 'companyOfficers'
 
         def _format(k, v):
             if isinstance(v, dict) and "raw" in v and "fmt" in v:
@@ -660,6 +633,7 @@ class Quote:
         self._info = {k: _format(k, v) for k, v in query1_info.items()}
 
     def _fetch_complementary(self):
+        """获取补充信息"""
         if self._already_fetched_complementary:
             return
         self._already_fetched_complementary = True
@@ -668,35 +642,11 @@ class Quote:
         if self._info is None:
             return
 
-        # Complementary key-statistics. For now just want 'trailing PEG ratio'
         keys = {"trailingPegRatio"}
         if keys:
-            # Simplified the original scrape code for key-statistics. Very expensive for fetching
-            # just one value, best if scraping most/all:
-            #
-            # p = _re.compile(r'root\.App\.main = (.*);')
-            # url = 'https://finance.yahoo.com/quote/{}/key-statistics?p={}'.format(self._ticker.ticker, self._ticker.ticker)
-            # try:
-            #     r = session.get(url)
-            #     data = _json.loads(p.findall(r.text)[0])
-            #     key_stats = data['context']['dispatcher']['stores']['QuoteTimeSeriesStore']["timeSeries"]
-            #     for k in keys:
-            #         if k not in key_stats or len(key_stats[k])==0:
-            #             # Yahoo website prints N/A, indicates Yahoo lacks necessary data to calculate
-            #             v = None
-            #         else:
-            #             # Select most recent (last) raw value in list:
-            #             v = key_stats[k][-1]["reportedValue"]["raw"]
-            #         self._info[k] = v
-            # except Exception:
-            #     raise
-            #     pass
-            #
-            # For just one/few variable is faster to query directly:
             url = f"https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{self._symbol}?symbol={self._symbol}"
             for k in keys:
                 url += "&type=" + k
-            # Request 6 months of data
             start = pd.Timestamp.utcnow().floor("D") - datetime.timedelta(days=365 // 2)
             start = int(start.timestamp())
             end = pd.Timestamp.utcnow().ceil("D")
@@ -716,7 +666,7 @@ class Quote:
                     self.info[k] = None
 
     def _fetch_calendar(self):
-        # secFilings return too old data, so not requesting it for now
+        """获取日历"""
         result = self._fetch(modules=['calendarEvents'])
         if result is None:
             self._calendar = {}
@@ -729,7 +679,6 @@ class Quote:
                 self._calendar['Dividend Date'] = datetime.datetime.fromtimestamp(_events['dividendDate']).date()
             if 'exDividendDate' in _events:
                 self._calendar['Ex-Dividend Date'] = datetime.datetime.fromtimestamp(_events['exDividendDate']).date()
-            # splits = _events.get('splitDate')  # need to check later, i will add code for this if found data
             earnings = _events.get('earnings')
             if earnings is not None:
                 self._calendar['Earnings Date'] = [datetime.datetime.fromtimestamp(d).date() for d in earnings.get('earningsDate', [])]
@@ -744,32 +693,16 @@ class Quote:
 
 
     def _fetch_sec_filings(self):
+        """获取SEC文件"""
         result = self._fetch(modules=['secFilings'])
         if result is None:
             return None
 
         filings = result["quoteSummary"]["result"][0]["secFilings"]["filings"]
 
-        # Improve structure
         for f in filings:
             if 'exhibits' in f:
                 f['exhibits'] = {e['type']:e['url'] for e in f['exhibits']}
             f['date'] = datetime.datetime.strptime(f['date'], '%Y-%m-%d').date()
-
-        # Experimental: convert to pandas
-        # for i in range(len(filings)):
-        #     f = filings[i]
-        #     if 'exhibits' in f:
-        #         for e in f['exhibits']:
-        #             f[e['type']] = e['url']
-        #         del f['exhibits']
-        #     filings[i] = f
-        # filings = pd.DataFrame(filings)
-        # for c in filings.columns:
-        #     if c.startswith('EX-'):
-        #         filings[c] = filings[c].astype(str)
-        #         filings.loc[filings[c]=='nan', c] = ''
-        # filings = filings.drop('epochDate', axis=1)
-        # filings = filings.set_index('date')
 
         return filings
