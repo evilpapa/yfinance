@@ -35,10 +35,10 @@ from . import utils, cache
 from .data import YfData
 from .exceptions import YFEarningsDateMissing, YFRateLimitError
 from .live import WebSocket
+from .datasources.factory import DataSourceFactory
 from .scrapers.analysis import Analysis
 from .scrapers.fundamentals import Fundamentals
 from .scrapers.holders import Holders
-from .scrapers.quote import Quote, FastInfo
 from .scrapers.history import PriceHistory
 from .scrapers.funds import FundsData
 
@@ -85,13 +85,11 @@ class TickerBase:
 
         # self._price_history = PriceHistory(self._data, self.ticker)
         self._price_history = None  # lazy-load
+        self._strategy = DataSourceFactory.get_source()
         self._analysis = Analysis(self._data, self.ticker)
         self._holders = Holders(self._data, self.ticker)
-        self._quote = Quote(self._data, self.ticker)
         self._fundamentals = Fundamentals(self._data, self.ticker)
         self._funds_data = None
-
-        self._fast_info = None
 
         self._message_handler = None
         self.ws = None
@@ -180,21 +178,10 @@ class TickerBase:
         Returns a DataFrame with the recommendations
         Columns: period  strongBuy  buy  hold  sell  strongSell
         """
-        if proxy is not _SENTINEL_:
-            warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
-            self._data._set_proxy(proxy)
-
-        data = self._quote.recommendations
-        if as_dict:
-            return data.to_dict()
-        return data
+        raise NotImplementedError("This method is being migrated to the new data source system.")
 
     def get_recommendations_summary(self, proxy=_SENTINEL_, as_dict=False):
-        if proxy is not _SENTINEL_:
-            warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
-            self._data._set_proxy(proxy)
-
-        return self.get_recommendations(as_dict=as_dict)
+        raise NotImplementedError("This method is being migrated to the new data source system.")
 
     def get_upgrades_downgrades(self, proxy=_SENTINEL_, as_dict=False):
         """
@@ -202,28 +189,13 @@ class TickerBase:
         Index: date of grade
         Columns: firm toGrade fromGrade action
         """
-        if proxy is not _SENTINEL_:
-            warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
-            self._data._set_proxy(proxy)
-
-        data = self._quote.upgrades_downgrades
-        if as_dict:
-            return data.to_dict()
-        return data
+        raise NotImplementedError("This method is being migrated to the new data source system.")
 
     def get_calendar(self, proxy=_SENTINEL_) -> dict:
-        if proxy is not _SENTINEL_:
-            warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
-            self._data._set_proxy(proxy)
-
-        return self._quote.calendar
+        raise NotImplementedError("This method is being migrated to the new data source system.")
 
     def get_sec_filings(self, proxy=_SENTINEL_) -> dict:
-        if proxy is not _SENTINEL_:
-            warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
-            self._data._set_proxy(proxy)
-
-        return self._quote.sec_filings
+        raise NotImplementedError("This method is being migrated to the new data source system.")
 
     def get_major_holders(self, proxy=_SENTINEL_, as_dict=False):
         if proxy is not _SENTINEL_:
@@ -295,27 +267,13 @@ class TickerBase:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
 
-        data = self._quote.info
-        return data
+        return self._strategy.get_info(self.ticker)
 
     def get_fast_info(self, proxy=_SENTINEL_):
-        if proxy is not _SENTINEL_:
-            warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
-            self._data._set_proxy(proxy)
-
-        if self._fast_info is None:
-            self._fast_info = FastInfo(self)
-        return self._fast_info
+        raise NotImplementedError("fast_info is deprecated and will be removed.")
 
     def get_sustainability(self, proxy=_SENTINEL_, as_dict=False):
-        if proxy is not _SENTINEL_:
-            warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
-            self._data._set_proxy(proxy)
-
-        data = self._quote.sustainability
-        if as_dict:
-            return data.to_dict()
-        return data
+        raise NotImplementedError("This method is being migrated to the new data source system.")
 
     def get_analyst_price_targets(self, proxy=_SENTINEL_) -> dict:
         if proxy is not _SENTINEL_:
@@ -637,11 +595,11 @@ class TickerBase:
 
         q = ticker
 
-        if self._quote.info is None:
-            # Don't print error message cause self._quote.info will print one
+        if self.info is None:
+            # Don't print error message cause self.info will print one
             return None
-        if "shortName" in self._quote.info:
-            q = self._quote.info['shortName']
+        if "shortName" in self.info:
+            q = self.info['shortName']
 
         url = f'https://markets.businessinsider.com/ajax/SearchController_Suggest?max_results=25&query={urlencode(q)}'
         data = self._data.cache_get(url=url).text

@@ -32,6 +32,8 @@ from .domain.sector import Sector
 from .domain.industry import Industry
 from .domain.market import Market
 from .data import YfData
+from . import datasources  # Import to trigger registration
+from .datasources.factory import DataSourceFactory
 
 from .screener.query import EquityQuery, FundQuery
 from .screener.screener import screen, PREDEFINED_SCREENER_QUERIES
@@ -42,7 +44,7 @@ __author__ = "Ran Aroussi"
 import warnings
 warnings.filterwarnings('default', category=DeprecationWarning, module='^yfinance')
 
-__all__ = ['download', 'Market', 'Search', 'Lookup', 'Ticker', 'Tickers', 'enable_debug_mode', 'set_tz_cache_location', 'Sector', 'Industry', 'WebSocket', 'AsyncWebSocket']
+__all__ = ['download', 'Market', 'Search', 'Lookup', 'Ticker', 'Tickers', 'enable_debug_mode', 'set_tz_cache_location', 'Sector', 'Industry', 'WebSocket', 'AsyncWebSocket', 'set_data_source']
 # screener stuff:
 __all__ += ['EquityQuery', 'FundQuery', 'screen', 'PREDEFINED_SCREENER_QUERIES']
 
@@ -52,3 +54,7 @@ def set_config(proxy=_NOTSET):
     if proxy is not _NOTSET:
         YfData(proxy=proxy)
 __all__ += ["set_config"]
+
+def set_data_source(name: str):
+    """Set the default data source."""
+    DataSourceFactory.set_default(name)
