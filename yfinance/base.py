@@ -35,10 +35,11 @@ from . import utils, cache
 from .data import YfData
 from .exceptions import YFEarningsDateMissing, YFRateLimitError
 from .live import WebSocket
+from .datasources.factory import DataSourceFactory
 from .scrapers.analysis import Analysis
 from .scrapers.fundamentals import Fundamentals
 from .scrapers.holders import Holders
-from .scrapers.quote import Quote, FastInfo
+#from .scrapers.quote import Quote, FastInfo
 from .scrapers.history import PriceHistory
 from .scrapers.funds import FundsData
 
@@ -99,13 +100,14 @@ class TickerBase:
         # 懒加载价格历史记录对象
         self._price_history = None
         # 初始化其他数据抓取器
+        self._strategy = DataSourceFactory.get_source()
         self._analysis = Analysis(self._data, self.ticker)
         self._holders = Holders(self._data, self.ticker)
-        self._quote = Quote(self._data, self.ticker)
+        # self._quote = Quote(self._data, self.ticker)
         self._fundamentals = Fundamentals(self._data, self.ticker)
         self._funds_data = None
 
-        self._fast_info = None
+        # self._fast_info = None
 
         self._message_handler = None
         self.ws = None
@@ -217,6 +219,7 @@ class TickerBase:
         返回一个包含建议的DataFrame。
         列: period, strongBuy, buy, hold, sell, strongSell
         """
+        raise NotImplementedError("This method is being migrated to the new data source system.")
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -228,6 +231,7 @@ class TickerBase:
 
     def get_recommendations_summary(self, proxy=_SENTINEL_, as_dict=False):
         """get_recommendations的别名。"""
+        raise NotImplementedError("This method is being migrated to the new data source system.")
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -242,6 +246,7 @@ class TickerBase:
         索引: 评级日期
         列: firm, toGrade, fromGrade, action
         """
+        raise NotImplementedError("This method is being migrated to the new data source system.")
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -253,6 +258,7 @@ class TickerBase:
 
     def get_calendar(self, proxy=_SENTINEL_) -> dict:
         """获取财报日历。"""
+        raise NotImplementedError("This method is being migrated to the new data source system.")
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -261,6 +267,7 @@ class TickerBase:
 
     def get_sec_filings(self, proxy=_SENTINEL_) -> dict:
         """获取SEC文件。"""
+        raise NotImplementedError("This method is being migrated to the new data source system.")
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -344,11 +351,13 @@ class TickerBase:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
 
-        data = self._quote.info
-        return data
+        return self._strategy.get_info(self.ticker)
+        #data = self._quote.info
+        #return data
 
     def get_fast_info(self, proxy=_SENTINEL_):
         """获取股票的快速信息，这是一个轻量级的info版本。"""
+        raise NotImplementedError("fast_info is deprecated and will be removed.")
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)
@@ -359,6 +368,7 @@ class TickerBase:
 
     def get_sustainability(self, proxy=_SENTINEL_, as_dict=False):
         """获取公司的可持续性发展（ESG）数据。"""
+        raise NotImplementedError("This method is being migrated to the new data source system.")
         if proxy is not _SENTINEL_:
             warnings.warn("Set proxy via new config function: yf.set_config(proxy=proxy)", DeprecationWarning, stacklevel=2)
             self._data._set_proxy(proxy)

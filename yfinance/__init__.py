@@ -43,6 +43,8 @@ from .domain.industry import Industry
 from .domain.market import Market
 # 从本地模块导入YfData类
 from .data import YfData
+from . import datasources  # Import to trigger registration
+from .datasources.factory import DataSourceFactory
 
 # 从screener子包导入查询和筛选功能
 from .screener.query import EquityQuery, FundQuery
@@ -58,7 +60,7 @@ import warnings
 warnings.filterwarnings('default', category=DeprecationWarning, module='^yfinance')
 
 # 定义__all__列表，指定通过 'from yfinance import *' 导入的模块
-__all__ = ['download', 'Market', 'Search', 'Lookup', 'Ticker', 'Tickers', 'enable_debug_mode', 'set_tz_cache_location', 'Sector', 'Industry', 'WebSocket', 'AsyncWebSocket']
+__all__ = ['download', 'Market', 'Search', 'Lookup', 'Ticker', 'Tickers', 'enable_debug_mode', 'set_tz_cache_location', 'Sector', 'Industry', 'WebSocket', 'AsyncWebSocket', 'set_data_source']
 # 添加screener相关的模块到__all__
 __all__ += ['EquityQuery', 'FundQuery', 'screen', 'PREDEFINED_SCREENER_QUERIES']
 
@@ -72,3 +74,8 @@ def set_config(proxy=_NOTSET):
     if proxy is not _NOTSET:
         YfData(proxy=proxy)
 __all__ += ["set_config"]
+
+# 设置抓取数据源
+def set_data_source(name: str):
+    """设置默认的数据源"""
+    DataSourceFactory.set_default(name)
