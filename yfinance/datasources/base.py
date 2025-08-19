@@ -4,60 +4,53 @@ from typing import Dict, Any, Optional
 
 class DataSourceStrategy(abc.ABC):
     """
-    Abstract Base Class for data source strategies.
-    Defines a common interface for fetching financial data from various sources.
+    数据源策略的抽象基类 (Abstract Base Class for data source strategies)。
+
+    该类定义了一个通用接口，所有具体的数据源实现（如 Yahoo, Akshare）都必须遵循这个接口。
+    这确保了上层逻辑可以统一地调用不同的数据源。
     """
 
     @abc.abstractmethod
     def get_history(self, ticker: str, period: str, interval: str,
                     start: Optional[str] = None, end: Optional[str] = None,
-                    prepost: bool = False, actions: bool = True,
-                    auto_adjust: bool = True, back_adjust: bool = False,
-                    proxy: Optional[str] = None, rounding: bool = False,
-                    tz: Optional[str] = None, timeout: Optional[int] = None,
                     **kwargs) -> Optional[pd.DataFrame]:
-        """Fetches historical market data."""
+        """
+        获取指定股票的历史行情数据。
+        Fetches historical market data for a given ticker.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_info(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None) -> Dict[str, Any]:
-        """Fetches general information about the ticker."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_major_holders(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None) -> Optional[pd.DataFrame]:
-        """Fetches major holders data."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_institutional_holders(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None) -> Optional[pd.DataFrame]:
-        """Fetches institutional holders data."""
+        """
+        获取指定股票的基本信息。
+        Fetches general information about the ticker.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_income_stmt(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None,
                           freq: str = "yearly") -> Optional[pd.DataFrame]:
-        """Fetches income statement."""
+        """
+        获取利润表。
+        Fetches income statement.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_balance_sheet(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None,
                             freq: str = "yearly") -> Optional[pd.DataFrame]:
-        """Fetches balance sheet."""
+        """
+        获取资产负债表。
+        Fetches balance sheet.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_cash_flow(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None,
                         freq: str = "yearly") -> Optional[pd.DataFrame]:
-        """Fetches cash flow statement."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_recommendations(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None) -> Optional[pd.DataFrame]:
-        """Fetches analyst recommendations."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_earnings_dates(self, ticker: str, proxy: Optional[str] = None, timeout: Optional[int] = None) -> Optional[pd.DataFrame]:
-        """Fetches earnings dates."""
+        """
+        获取现金流量表。
+        Fetches cash flow statement.
+        """
         raise NotImplementedError

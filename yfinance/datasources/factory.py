@@ -1,69 +1,63 @@
-from typing import Dict, Any, Optional, List
-
+from typing import Dict, Any, Optional, List, Type
 from .base import DataSourceStrategy
-from .generic import GenericDataSource
-from .yahoo import YahooDataSource
-from .tencent import TencentDataSource
 
 class DataSourceFactory:
     """
+    一个用于创建和管理数据源策略的工厂类。
     A factory for creating and managing data source strategies.
-    This acts as a central registry for all available data sources.
+
+    这个类扮演着一个中心注册表(central registry)的角色，所有可用的数据源都需要在这里注册。
+    它允许用户在运行时动态地切换数据源。
     """
-    _registry: Dict[str, Dict[str, Any]] = {}
-    _default_source_name: str = "yahoo"  # Default to yahoo
+    _source_classes: Dict[str, Type[DataSourceStrategy]] = {}
+    _default_source_name: str = "yahoo"  # 默认数据源为 'yahoo'
 
     @classmethod
-    def register_source(cls, name: str, config: Dict[str, Any]):
+    def register_source(cls, name: str, source_class: Type[DataSourceStrategy]):
         """
-        Registers a new data source configuration.
+        注册一个新的数据源策略类。
+        Registers a new data source strategy class.
 
-        :param name: The name of the data source (e.g., 'yahoo', 'tencent').
-        :param config: The configuration dictionary for this source.
+        :param name: 数据源的名称 (e.g., 'yahoo', 'akshare').
+        :param source_class: 实现了 DataSourceStrategy 接口的类。
         """
-        cls._registry[name] = config
+        cls._source_classes[name] = source_class
 
     @classmethod
     def get_source(cls, name: Optional[str] = None) -> DataSourceStrategy:
         """
-        Retrieves a configured data source strategy instance.
+        根据名称获取一个数据源策略的实例。
+        Retrieves a configured data source strategy instance by name.
 
-        :param name: The name of the data source to retrieve. If None,
-                     the default source is returned.
-        :return: An instance of a class that implements DataSourceStrategy.
+        :param name: 要获取的数据源的名称。如果为 None，则返回默认数据源。
+        :return: 一个实现了 DataSourceStrategy 接口的类的实例。
         """
         if name is None:
             name = cls._default_source_name
 
-        if name not in cls._registry:
-            raise ValueError(f"Data source '{name}' is not registered. "
-                             f"Available sources: {list(cls._registry.keys())}")
+        source_class = cls._source_classes.get(name)
+        if not source_class:
+            raise ValueError(f"数据源 '{name}' 未被注册。可用数据源: {list(cls._source_classes.keys())}")
 
-        config = cls._registry[name]
-
-        if name == 'yahoo':
-            return YahooDataSource(config)
-        elif name == 'tencent':
-            return TencentDataSource(config)
-
-        # Default to GenericDataSource for any other source
-        return GenericDataSource(config)
+        # 实例化策略类
+        return source_class()
 
     @classmethod
     def set_default(cls, name: str):
         """
-        Sets the default data source name.
+        设置默认的数据源。
+        Sets the default data source.
 
-        :param name: The name of the data source to set as default.
+        :param name: 要设置为默认的数据源的名称。
         """
-        if name not in cls._registry:
-            # If we are setting a default, it must be registered first.
-            # However, we might want to register it later.
-            # For now, let's enforce registration first.
-            raise ValueError(f"Cannot set default source to '{name}' because it is not registered.")
+        if name not in cls._source_classes:
+            raise ValueError(f"无法将 '{name}' 设置为默认数据源，因为它尚未被注册。")
         cls._default_source_name = name
 
     @classmethod
     def get_available_sources(cls) -> List[str]:
-        """Returns a list of available source names."""
-        return list(cls._registry.keys())
+        """
+        返回所有可用的数据源名称列表。
+        Returns a list of available source names.
+        """
+        return list(cls._source_classes.keys())
